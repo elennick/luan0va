@@ -3,9 +3,7 @@ local score = 0
 local audioEnabled = false
 local currentFlameImg = nil
 local engineAnimationTimer = 0
-local backgroundStar1 = nil
-local backgroundStar2 = nil
-local backgroundStar3 = nil
+local stars = {}
 
 function love.load()
     -- load image media
@@ -24,27 +22,34 @@ function love.load()
     end
 
     -- generate initial background stars
-    x = math.random(0,1280)
-    y = math.random(0, 720)
-    backgroundStar1 = BackgroundStar:new(nil, x, y,3, 0, 0, 255)
-    x = math.random(0,1280)
-    y = math.random(0, 720)
-    backgroundStar2 = BackgroundStar:new(nil, x, y,2, 255, 255, 255)
-    x = math.random(0,1280)
-    y = math.random(0, 720)
-    backgroundStar3 = BackgroundStar:new(nil, x, y,1, 255, 255, 0)
+
+    --x = math.random(0, 1280)
+    --y = math.random(0, 720)
+    --stars[2] = BackgroundStar:new(nil, x, y, 2, 255, 255, 255)
+    --x = math.random(0, 1280)
+    --y = math.random(0, 720)
+    --stars[3] = BackgroundStar:new(nil, x, y, 1, 255, 255, 0)
+
+    for i = 1, 40 do
+        size = math.random(1, 3)
+        x = math.random(0, 1280)
+        y = math.random(0, 720)
+        speed = math.random(2, 8)
+        stars[i] = BackgroundStar:new(nil, x, y, size, 255, 255, 255, speed)
+    end
 end
 
 function love.draw()
-    love.graphics.print("Score: " .. score, 950, 25)
     love.graphics.draw(blueStar, 600, 400)
-    love.graphics.draw(ship, 160, shipY, math.rad(90))
 
+    for i, star in ipairs(stars) do
+        star:draw()
+    end
+
+    love.graphics.draw(ship, 160, shipY, math.rad(90))
     love.graphics.draw(currentFlameImg, 70, shipY + 70, math.rad(180))
 
-    backgroundStar1:draw()
-    backgroundStar2:draw()
-    backgroundStar3:draw()
+    love.graphics.print("Score: " .. score, 950, 25)
 end
 
 function love.update(dt)
@@ -75,15 +80,19 @@ function love.update(dt)
     end
 
     -- update background stars
-    backgroundStar1.x = backgroundStar1.x - 5
-    backgroundStar2.x = backgroundStar2.x - 5
-    backgroundStar3.x = backgroundStar3.x - 5
+    for i, star in ipairs(stars) do
+        star.x = star.x - star.speed
+        if star.x < 0 then
+            star.x = 1280
+            star.y = math.random(0, 720)
+        end
+    end
 end
 
 --- background star stuff
-BackgroundStar = { x = 0, y = 0, size = 2, r = 255, g = 255, b = 255 }
+BackgroundStar = { x = 0, y = 0, size = 2, r = 255, g = 255, b = 255, speed = 5 }
 
-function BackgroundStar:new (o, x, y, size, r, g, b)
+function BackgroundStar:new (o, x, y, size, r, g, b, speed)
     self.__index = self
     return setmetatable({
         x = x or 0,
@@ -91,7 +100,8 @@ function BackgroundStar:new (o, x, y, size, r, g, b)
         size = size or 2,
         r = r or 255,
         g = g or 255,
-        b = b or 255
+        b = b or 255,
+        speed = speed or 5
     }, self)
 end
 
