@@ -17,8 +17,4 @@ function PlayerShip:update(dt)
     -- do whatever
 end
 
-function PlayerShip:fire()
-    -- shoot gun
-end
-
 return PlayerShip

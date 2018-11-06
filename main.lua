@@ -1,16 +1,20 @@
 require("src.backgroundstar")
 require("src.enemyship")
 require("src.playership")
-
-local audioEnabled = true
+require("src.bullet")
 
 local stars = {}
 local enemyShips = {}
 local playerShip
+local playerBullets = {}
 
 local score = 0
-local numberOfBackgroundStars = 50
 local timeElapsedSinceLastEngineAnimation = 0
+local timeSinceLastPlayerBulletFired = 0
+
+-- config constants
+local audioEnabled = true
+local numberOfBackgroundStars = 50
 
 function love.load()
     love.window.setMode(1280, 720, { resizable = false, vsync = true, fullscreen = false, msaa = 1 })
@@ -77,6 +81,9 @@ function love.draw()
     -- player ship
     love.graphics.draw(playerShip.graphic, playerShip.x, playerShip.y, math.rad(90))
     love.graphics.draw(engineFlame_frames[currentFlameFrameIndex], 70, playerShip.y + 70, math.rad(180))
+    for i, bullet in ipairs(playerBullets) do
+        bullet:draw()
+    end
 
     -- enemy ships
     for i, ship in ipairs(enemyShips) do
@@ -90,16 +97,16 @@ end
 function love.update(dt)
     -- handle input
     if love.keyboard.isDown("up") then
-        playerShip.y  = playerShip.y  - 8
-        if playerShip.y  < 10 then
-            playerShip.y  = 10
+        playerShip.y = playerShip.y - 8
+        if playerShip.y < 10 then
+            playerShip.y = 10
         end
     end
 
     if love.keyboard.isDown("down") then
-        playerShip.y  = playerShip.y  + 8
-        if playerShip.y  > 610 then
-            playerShip.y  = 610
+        playerShip.y = playerShip.y + 8
+        if playerShip.y > 610 then
+            playerShip.y = 610
         end
     end
 
@@ -108,8 +115,12 @@ function love.update(dt)
     end
 
     if love.keyboard.isDown("space") then
-        playerShip:fire()
-        score = score + 10
+        timeSinceLastPlayerBulletFired = timeSinceLastPlayerBulletFired + dt
+        if (timeSinceLastPlayerBulletFired > .15) then
+            local newBullet = Bullet:new(nil, playerShip.x - 5, playerShip.y + 50)
+            table.insert(playerBullets, newBullet)
+            timeSinceLastPlayerBulletFired = 0
+        end
     end
 
     -- engine animation
@@ -132,8 +143,14 @@ function love.update(dt)
         end
     end
 
-    -- player ship
+    -- player ship and bullets
     playerShip:update(dt)
+    for i, bullet in ipairs(playerBullets) do
+        bullet:update(dt)
+        if bullet.x > 1280 then
+            table.remove(playerBullets, i)
+        end
+    end
 
     -- enemy ships
     for i, ship in ipairs(enemyShips) do
