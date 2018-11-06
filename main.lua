@@ -1,11 +1,14 @@
 require("src.backgroundstar")
 require("src.enemyship")
+require("src.playership")
 
-local playerShipY = 300
-local score = 0
-local audioEnabled = false
+local audioEnabled = true
+
 local stars = {}
 local enemyShips = {}
+local playerShip
+
+local score = 0
 local numberOfBackgroundStars = 50
 local timeElapsedSinceLastEngineAnimation = 0
 
@@ -13,25 +16,25 @@ function love.load()
     love.window.setMode(1280, 720, { resizable = false, vsync = true, fullscreen = false, msaa = 1 })
 
     -- load graphics
-    playerShip = love.graphics.newImage("image/pixel_ship_red.png")
-    enemyShip = love.graphics.newImage("image/pixel_ship_yellow.png")
+    playerShipImg = love.graphics.newImage("image/pixel_ship_red.png")
+    enemyShipImg = love.graphics.newImage("image/pixel_ship_yellow.png")
 
-    blueStar = love.graphics.newImage("image/stars/star_blue_giant01.png")
-    redStar = love.graphics.newImage("image/stars/star_red_giant01.png")
-    asteroid = love.graphics.newImage("image/pixel_asteroid.png")
+    blueStarImg = love.graphics.newImage("image/stars/star_blue_giant01.png")
+    redStarImg = love.graphics.newImage("image/stars/star_red_giant01.png")
+    asteroidImg = love.graphics.newImage("image/pixel_asteroid.png")
 
-    engineFlame_frame1 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame4-1.png")
-    engineFlame_frame2 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame4-2.png")
-    engineFlame_frame3 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame4-3.png")
-    engineFlame_frame4 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame6-1.png")
-    engineFlame_frame5 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame6-2.png")
-    engineFlame_frame6 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame6-3.png")
-    engineFlame_frame7 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame7-1.png")
-    engineFlame_frame8 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame7-2.png")
-    engineFlame_frame9 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame7-3.png")
-    engineFlame_frames = { engineFlame_frame1, engineFlame_frame2, engineFlame_frame3,
-                           engineFlame_frame4, engineFlame_frame5, engineFlame_frame6,
-                           engineFlame_frame7, engineFlame_frame8, engineFlame_frame9 }
+    engineFlame_frame1Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame4-1.png")
+    engineFlame_frame2Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame4-2.png")
+    engineFlame_frame3Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame4-3.png")
+    engineFlame_frame4Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame6-1.png")
+    engineFlame_frame5Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame6-2.png")
+    engineFlame_frame6Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame6-3.png")
+    engineFlame_frame7Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame7-1.png")
+    engineFlame_frame8Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame7-2.png")
+    engineFlame_frame9Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame7-3.png")
+    engineFlame_frames = { engineFlame_frame1Img, engineFlame_frame2Img, engineFlame_frame3Img,
+                           engineFlame_frame4Img, engineFlame_frame5Img, engineFlame_frame6Img,
+                           engineFlame_frame7Img, engineFlame_frame8Img, engineFlame_frame9Img }
     currentFlameFrameIndex = 1;
 
     -- load audio
@@ -49,16 +52,22 @@ function love.load()
         stars[i] = BackgroundStar:new(nil, x, y, size, 255, 255, 255, speed)
     end
 
+    -- player ship
+    playerShip = PlayerShip:new(nil, 160, 300, playerShipImg)
+
     -- enemy ships
-    enemyShips[1] = EnemyShip:new(nil, 900, 300, enemyShip)
-    enemyShips[2] = EnemyShip:new(nil, 900, 375, enemyShip)
-    enemyShips[3] = EnemyShip:new(nil, 900, 450, enemyShip)
+    enemyShips[1] = EnemyShip:new(nil, 900, 300, enemyShipImg)
+    enemyShips[2] = EnemyShip:new(nil, 900, 375, enemyShipImg)
+    enemyShips[3] = EnemyShip:new(nil, 900, 450, enemyShipImg)
+    enemyShips[4] = EnemyShip:new(nil, 975, 300, enemyShipImg)
+    enemyShips[5] = EnemyShip:new(nil, 975, 375, enemyShipImg)
+    enemyShips[6] = EnemyShip:new(nil, 975, 450, enemyShipImg)
 end
 
 function love.draw()
     -- background big stars
-    love.graphics.draw(blueStar, 600, 400)
-    love.graphics.draw(redStar, 400, 0, 0, 0.2, 0.2)
+    love.graphics.draw(blueStarImg, 600, 400)
+    love.graphics.draw(redStarImg, 400, 0, 0, 0.2, 0.2)
 
     -- background small stars
     for i, star in ipairs(stars) do
@@ -66,8 +75,8 @@ function love.draw()
     end
 
     -- player ship
-    love.graphics.draw(playerShip, 160, playerShipY, math.rad(90))
-    love.graphics.draw(engineFlame_frames[currentFlameFrameIndex], 70, playerShipY + 70, math.rad(180))
+    love.graphics.draw(playerShip.graphic, playerShip.x, playerShip.y, math.rad(90))
+    love.graphics.draw(engineFlame_frames[currentFlameFrameIndex], 70, playerShip.y + 70, math.rad(180))
 
     -- enemy ships
     for i, ship in ipairs(enemyShips) do
@@ -81,16 +90,16 @@ end
 function love.update(dt)
     -- handle input
     if love.keyboard.isDown("up") then
-        playerShipY = playerShipY - 8
-        if playerShipY < 10 then
-            playerShipY = 10
+        playerShip.y  = playerShip.y  - 8
+        if playerShip.y  < 10 then
+            playerShip.y  = 10
         end
     end
 
     if love.keyboard.isDown("down") then
-        playerShipY = playerShipY + 8
-        if playerShipY > 610 then
-            playerShipY = 610
+        playerShip.y  = playerShip.y  + 8
+        if playerShip.y  > 610 then
+            playerShip.y  = 610
         end
     end
 
@@ -99,7 +108,8 @@ function love.update(dt)
     end
 
     if love.keyboard.isDown("space") then
-        --shoot
+        playerShip:fire()
+        score = score + 10
     end
 
     -- engine animation
@@ -121,6 +131,9 @@ function love.update(dt)
             star.speed = math.random(2, 8)
         end
     end
+
+    -- player ship
+    playerShip:update(dt)
 
     -- enemy ships
     for i, ship in ipairs(enemyShips) do
