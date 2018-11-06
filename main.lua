@@ -11,16 +11,13 @@ local playerBullets = {}
 local score = 0
 local timeElapsedSinceLastEngineAnimation = 0
 local timeSinceLastPlayerBulletFired = 0
-local numOfBullets = 0
 
 -- config constants
 local audioEnabled = true
 local numberOfBackgroundStars = 50
 
 function love.load()
-    love.window.setMode(1280, 720, { resizable = false, vsync = true, fullscreen = false, msaa = 1 })
-
-    -- load graphics
+    -- load images
     playerShipImg = love.graphics.newImage("image/pixel_ship_red.png")
     enemyShipImg = love.graphics.newImage("image/pixel_ship_yellow.png")
 
@@ -44,6 +41,7 @@ function love.load()
 
     -- load audio
     local song = love.audio.newSource("audio/Religions.mp3", "stream")
+    print("audioEnabled" .. tostring(audioEnabled))
     if audioEnabled then
         love.audio.play(song)
     end
@@ -80,7 +78,7 @@ function love.draw()
     end
 
     -- player ship
-    love.graphics.draw(playerShip.graphic, playerShip.x, playerShip.y, math.rad(90))
+    love.graphics.draw(playerShip.image, playerShip.x, playerShip.y, math.rad(90))
     love.graphics.draw(engineFlame_frames[currentFlameFrameIndex], 70, playerShip.y + 70, math.rad(180))
     for i, bullet in ipairs(playerBullets) do
         bullet:draw()
@@ -93,7 +91,6 @@ function love.draw()
 
     -- text displays
     love.graphics.print("Score: " .. score, 1000, 25)
-    love.graphics.print("Number of Bullets: " .. numOfBullets, 1000, 125)
 end
 
 function love.update(dt)
@@ -153,10 +150,28 @@ function love.update(dt)
             table.remove(playerBullets, i)
         end
     end
-    numOfBullets = table.table(bullet)
 
     -- enemy ships
     for i, ship in ipairs(enemyShips) do
         ship:update(dt)
     end
+
+    -- check collisons
+    for i, ship in ipairs(enemyShips) do
+        for l, bullet in ipairs(playerBullets) do
+            local collisionDectected = checkCollision(
+                    ship.x, ship.y, ship.image:getPixelWidth(), ship.image:getPixelHeight(),
+                    bullet.x, bullet.y, 5, 5)
+            if collisionDectected then
+                table.remove(enemyShips, i)
+            end
+        end
+    end
+end
+
+function checkCollision(x1, y1, w1, h1, x2, y2, w2, h2)
+    return x1 < x2 + w2 and
+            x2 < x1 + w1 and
+            y1 < y2 + h2 and
+            y2 < y1 + h1
 end
