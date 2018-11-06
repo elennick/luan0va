@@ -69,7 +69,7 @@ function love.draw()
     love.graphics.draw(playerShip, 160, playerShipY, math.rad(90))
     love.graphics.draw(engineFlame_frames[currentFlameFrameIndex], 70, playerShipY + 70, math.rad(180))
 
-    -- enemy enemy ships
+    -- enemy ships
     for i, ship in ipairs(enemyShips) do
         ship:draw()
     end
@@ -120,5 +120,10 @@ function love.update(dt)
             star.y = math.random(0, 720)
             star.speed = math.random(2, 8)
         end
+    end
+
+    -- enemy ships
+    for i, ship in ipairs(enemyShips) do
+        ship:update(dt)
     end
 end
