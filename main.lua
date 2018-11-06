@@ -11,6 +11,7 @@ local playerBullets = {}
 local score = 0
 local timeElapsedSinceLastEngineAnimation = 0
 local timeSinceLastPlayerBulletFired = 0
+local numOfBullets = 0
 
 -- config constants
 local audioEnabled = true
@@ -92,6 +93,7 @@ function love.draw()
 
     -- text displays
     love.graphics.print("Score: " .. score, 1000, 25)
+    love.graphics.print("Number of Bullets: " .. numOfBullets, 1000, 125)
 end
 
 function love.update(dt)
@@ -151,6 +153,7 @@ function love.update(dt)
             table.remove(playerBullets, i)
         end
     end
+    numOfBullets = table.table(bullet)
 
     -- enemy ships
     for i, ship in ipairs(enemyShips) do
