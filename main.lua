@@ -12,8 +12,9 @@ local score = 0
 local timeElapsedSinceLastEngineAnimation = 0
 local timeSinceLastPlayerBulletFired = 0
 
--- config constants
+-- debug/config constants
 local audioEnabled = true
+local drawCollisionHitboxes = true
 local numberOfBackgroundStars = 50
 
 function love.load()
@@ -41,12 +42,13 @@ function love.load()
 
     -- load audio
     local song = love.audio.newSource("audio/Religions.mp3", "stream")
-    print("audioEnabled" .. tostring(audioEnabled))
+    print("audioEnabled: " .. tostring(audioEnabled))
     if audioEnabled then
         love.audio.play(song)
     end
 
     -- generate initial background stars
+    print("numberOfBackgroundStars: " .. tostring(numberOfBackgroundStars))
     for i = 1, numberOfBackgroundStars do
         size = math.random(1, 3)
         x = math.random(0, 1280)
@@ -59,12 +61,18 @@ function love.load()
     playerShip = PlayerShip:new(nil, 160, 300, playerShipImg)
 
     -- enemy ships
-    enemyShips[1] = EnemyShip:new(nil, 900, 300, enemyShipImg)
-    enemyShips[2] = EnemyShip:new(nil, 900, 375, enemyShipImg)
-    enemyShips[3] = EnemyShip:new(nil, 900, 450, enemyShipImg)
-    enemyShips[4] = EnemyShip:new(nil, 975, 300, enemyShipImg)
-    enemyShips[5] = EnemyShip:new(nil, 975, 375, enemyShipImg)
-    enemyShips[6] = EnemyShip:new(nil, 975, 450, enemyShipImg)
+    enemyShips[1] = EnemyShip:new(nil, 900, 300, enemyShipImg, 0.7)
+    enemyShips[2] = EnemyShip:new(nil, 900, 375, enemyShipImg, 0.7)
+    enemyShips[3] = EnemyShip:new(nil, 900, 450, enemyShipImg, 0.7)
+    enemyShips[4] = EnemyShip:new(nil, 975, 300, enemyShipImg, 0.7)
+    enemyShips[5] = EnemyShip:new(nil, 975, 375, enemyShipImg, 0.7)
+    enemyShips[6] = EnemyShip:new(nil, 975, 450, enemyShipImg, 0.7)
+    enemyShips[7] = EnemyShip:new(nil, 825, 375, enemyShipImg, 0.7)
+    enemyShips[8] = EnemyShip:new(nil, 825, 300, enemyShipImg, 0.7)
+    enemyShips[9] = EnemyShip:new(nil, 825, 450, enemyShipImg, 0.7)
+    enemyShips[10] = EnemyShip:new(nil, 750, 375, enemyShipImg, 0.7)
+    enemyShips[11] = EnemyShip:new(nil, 750, 300, enemyShipImg, 0.7)
+    enemyShips[12] = EnemyShip:new(nil, 750, 450, enemyShipImg, 0.7)
 end
 
 function love.draw()
@@ -91,6 +99,14 @@ function love.draw()
 
     -- text displays
     love.graphics.print("Score: " .. score, 1000, 25)
+
+    -- draw collison hitboxes
+    if drawCollisionHitboxes then
+        for i, ship in ipairs(enemyShips) do
+            love.graphics.rectangle("line", ship.x, ship.y,
+                    ship:getScaledWidth(), ship:getScaledHeight())
+        end
+    end
 end
 
 function love.update(dt)
@@ -159,14 +175,22 @@ function love.update(dt)
     -- check collisons
     for i, ship in ipairs(enemyShips) do
         for l, bullet in ipairs(playerBullets) do
-            local collisionDectected = checkCollision(
-                    ship.x, ship.y, ship.image:getPixelWidth(), ship.image:getPixelHeight(),
-                    bullet.x, bullet.y, 5, 5)
+            local collisionDectected = checkCollisionOfShipAndBullet(ship, bullet)
             if collisionDectected then
+                print("collision detected")
                 table.remove(enemyShips, i)
+                table.remove(playerBullets, l)
             end
         end
     end
+end
+
+function checkCollisionOfShipAndBullet(ship, bullet)
+    return checkCollision(
+            ship.x, ship.y,
+            ship:getScaledWidth(), ship:getScaledHeight(),
+            bullet.x, bullet.y,
+            5, 5)
 end
 
 function checkCollision(x1, y1, w1, h1, x2, y2, w2, h2)
