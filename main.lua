@@ -1,25 +1,41 @@
 require("src.backgroundstar")
+require("src.enemyship")
 
-local shipY = 300
+local playerShipY = 300
 local score = 0
 local audioEnabled = false
-local currentFlameImg = nil
-local engineAnimationTimer = 0
 local stars = {}
-local numberOfBackgroundStars = 75
+local enemyShips = {}
+local numberOfBackgroundStars = 50
+local timeElapsedSinceLastEngineAnimation = 0
 
 function love.load()
-    -- load graphics
     love.window.setMode(1280, 720, { resizable = false, vsync = true, fullscreen = false, msaa = 1 })
-    ship = love.graphics.newImage("image/pixel_ship_red.png")
-    blueStar = love.graphics.newImage("image/stars/star_blue_giant01.png")
 
-    engineFlame1 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame4-3.png")
-    engineFlame2 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame7-1.png")
-    currentFlameImg = engineFlame1
+    -- load graphics
+    playerShip = love.graphics.newImage("image/pixel_ship_red.png")
+    enemyShip = love.graphics.newImage("image/pixel_ship_yellow.png")
+
+    blueStar = love.graphics.newImage("image/stars/star_blue_giant01.png")
+    redStar = love.graphics.newImage("image/stars/star_red_giant01.png")
+    asteroid = love.graphics.newImage("image/pixel_asteroid.png")
+
+    engineFlame_frame1 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame4-1.png")
+    engineFlame_frame2 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame4-2.png")
+    engineFlame_frame3 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame4-3.png")
+    engineFlame_frame4 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame6-1.png")
+    engineFlame_frame5 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame6-2.png")
+    engineFlame_frame6 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame6-3.png")
+    engineFlame_frame7 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame7-1.png")
+    engineFlame_frame8 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame7-2.png")
+    engineFlame_frame9 = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame7-3.png")
+    engineFlame_frames = { engineFlame_frame1, engineFlame_frame2, engineFlame_frame3,
+                           engineFlame_frame4, engineFlame_frame5, engineFlame_frame6,
+                           engineFlame_frame7, engineFlame_frame8, engineFlame_frame9 }
+    currentFlameFrameIndex = 1;
 
     -- load audio
-    song = love.audio.newSource("audio/Religions.mp3", "stream")
+    local song = love.audio.newSource("audio/Religions.mp3", "stream")
     if audioEnabled then
         love.audio.play(song)
     end
@@ -32,34 +48,49 @@ function love.load()
         speed = math.random(2, 8)
         stars[i] = BackgroundStar:new(nil, x, y, size, 255, 255, 255, speed)
     end
+
+    -- enemy ships
+    enemyShips[1] = EnemyShip:new(nil, 900, 300, enemyShip)
+    enemyShips[2] = EnemyShip:new(nil, 900, 375, enemyShip)
+    enemyShips[3] = EnemyShip:new(nil, 900, 450, enemyShip)
 end
 
 function love.draw()
+    -- background big stars
     love.graphics.draw(blueStar, 600, 400)
+    love.graphics.draw(redStar, 400, 0, 0, 0.2, 0.2)
 
+    -- background small stars
     for i, star in ipairs(stars) do
         star:draw()
     end
 
-    love.graphics.draw(ship, 160, shipY, math.rad(90))
-    love.graphics.draw(currentFlameImg, 70, shipY + 70, math.rad(180))
+    -- player ship
+    love.graphics.draw(playerShip, 160, playerShipY, math.rad(90))
+    love.graphics.draw(engineFlame_frames[currentFlameFrameIndex], 70, playerShipY + 70, math.rad(180))
 
+    -- enemy enemy ships
+    for i, ship in ipairs(enemyShips) do
+        ship:draw()
+    end
+
+    -- text displays
     love.graphics.print("Score: " .. score, 1000, 25)
 end
 
 function love.update(dt)
     -- handle input
     if love.keyboard.isDown("up") then
-        shipY = shipY - 8
-        if shipY < 10 then
-            shipY = 10
+        playerShipY = playerShipY - 8
+        if playerShipY < 10 then
+            playerShipY = 10
         end
     end
 
     if love.keyboard.isDown("down") then
-        shipY = shipY + 8
-        if shipY > 610 then
-            shipY = 610
+        playerShipY = playerShipY + 8
+        if playerShipY > 610 then
+            playerShipY = 610
         end
     end
 
@@ -72,14 +103,13 @@ function love.update(dt)
     end
 
     -- engine animation
-    engineAnimationTimer = engineAnimationTimer + dt
-    if engineAnimationTimer >= .2 then
-        if currentFlameImg == engineFlame1 then
-            currentFlameImg = engineFlame2
-        else
-            currentFlameImg = engineFlame1
+    timeElapsedSinceLastEngineAnimation = timeElapsedSinceLastEngineAnimation + dt
+    if timeElapsedSinceLastEngineAnimation > .08 then
+        currentFlameFrameIndex = currentFlameFrameIndex + 1
+        if currentFlameFrameIndex > table.getn(engineFlame_frames) then
+            currentFlameFrameIndex = 1
         end
-        engineAnimationTimer = 0
+        timeElapsedSinceLastEngineAnimation = 0
     end
 
     -- background stars
