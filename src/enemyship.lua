@@ -11,7 +11,14 @@ function EnemyShip:new (o, x, y, image, scale)
 end
 
 function EnemyShip:draw()
-    love.graphics.draw(self.image, self.x, self.y, 0, self.scale, self.scale)
+    love.graphics.draw(self.image,
+            self.x,
+            self.y,
+            math.rad(270),
+            self.scale,
+            self.scale,
+            self.image:getWidth() / 2,
+            self.image:getHeight() / 2)
 end
 
 function EnemyShip:update(dt)
@@ -24,6 +31,14 @@ end
 
 function EnemyShip:getScaledHeight()
     return self.image:getHeight() * self.scale;
+end
+
+function EnemyShip:getTopLeftX()
+    return self.x - self:getScaledWidth() / 2;
+end
+
+function EnemyShip:getTopLeftY()
+    return self.y - self:getScaledHeight() / 2;
 end
 
 return EnemyShip

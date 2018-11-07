@@ -103,7 +103,8 @@ function love.draw()
     -- draw collison hitboxes
     if drawCollisionHitboxes then
         for i, ship in ipairs(enemyShips) do
-            love.graphics.rectangle("line", ship.x, ship.y,
+            love.graphics.rectangle("line",
+                    ship:getTopLeftX(), ship:getTopLeftY(),
                     ship:getScaledWidth(), ship:getScaledHeight())
         end
     end
@@ -187,7 +188,7 @@ end
 
 function checkCollisionOfShipAndBullet(ship, bullet)
     return checkCollision(
-            ship.x, ship.y,
+            ship:getTopLeftX(), ship:getTopLeftY(),
             ship:getScaledWidth(), ship:getScaledHeight(),
             bullet.x, bullet.y,
             5, 5)
