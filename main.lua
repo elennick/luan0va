@@ -133,7 +133,7 @@ function love.update(dt)
     if love.keyboard.isDown("space") then
         timeSinceLastPlayerBulletFired = timeSinceLastPlayerBulletFired + dt
         if (timeSinceLastPlayerBulletFired > .15) then
-            local newBullet = Bullet:new(nil, playerShip.x - 5, playerShip.y + 50)
+            local newBullet = Bullet:new(nil, playerShip.x - 5, playerShip.y + 50, 4)
             table.insert(playerBullets, newBullet)
             timeSinceLastPlayerBulletFired = 0
         end
