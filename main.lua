@@ -41,10 +41,16 @@ function love.load()
     currentFlameFrameIndex = 1;
 
     -- load audio
+    explosionSound = love.audio.newSource("audio/effects/explosion.wav", "static")
+    explosionSound:setVolume(0.7)
+
+    shotSound = love.audio.newSource("audio/effects/shot.wav", "static")
+    shotSound:setVolume(0.4)
+
     local song = love.audio.newSource("audio/Religions.mp3", "stream")
     print("audioEnabled: " .. tostring(audioEnabled))
     if audioEnabled then
-        love.audio.play(song)
+        song:play()
     end
 
     -- generate initial background stars
@@ -76,14 +82,16 @@ function love.load()
 end
 
 function love.draw()
-    -- background big stars
-    love.graphics.draw(blueStarImg, 600, 400)
+    -- background big red star
     love.graphics.draw(redStarImg, 400, 0, 0, 0.2, 0.2)
 
     -- background small stars
     for i, star in ipairs(stars) do
         star:draw()
     end
+
+    -- background big blue stars
+    love.graphics.draw(blueStarImg, 600, 400)
 
     -- player ship
     love.graphics.draw(playerShip.image, playerShip.x, playerShip.y, math.rad(90))
@@ -132,10 +140,11 @@ function love.update(dt)
 
     if love.keyboard.isDown("space") then
         timeSinceLastPlayerBulletFired = timeSinceLastPlayerBulletFired + dt
-        if (timeSinceLastPlayerBulletFired > .15) then
+        if (timeSinceLastPlayerBulletFired > .12) then
             local newBullet = Bullet:new(nil, playerShip.x - 5, playerShip.y + 50, 4)
             table.insert(playerBullets, newBullet)
             timeSinceLastPlayerBulletFired = 0
+            shotSound:play()
         end
     end
 
@@ -181,6 +190,8 @@ function love.update(dt)
                 print("collision detected")
                 table.remove(enemyShips, i)
                 table.remove(playerBullets, l)
+                score = score + 25
+                explosionSound:play()
             end
         end
     end
