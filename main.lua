@@ -12,13 +12,14 @@ local playerBullets = {}
 local score = 0
 local timeElapsedSinceLastEngineAnimation = 0
 local timeSinceLastPlayerBulletFired = 0
+local timeSinceLastShipSpawn = 0
 
 -- debug/config constants
 local audioEnabled = true
 local drawCollisionHitboxes = false
 local showMemoryUsage = true
 local numberOfBackgroundStars = 50
-local maxNumberOfEnemyShips = 25
+local maxNumberOfEnemyShips = 20
 
 function love.load()
     -- load images
@@ -71,7 +72,7 @@ function love.load()
     playerShip = PlayerShip:new(nil, 160, 300, playerShipImg)
 
     -- enemy ships
-    spawnEnemyShips(15)
+    spawnEnemyShips(10)
 end
 
 function love.draw()
@@ -119,38 +120,7 @@ function love.draw()
 end
 
 function love.update(dt)
-    -- handle input
-    if love.keyboard.isDown("up") then
-        playerShip.y = playerShip.y - 8
-        if playerShip.y < 10 then
-            playerShip.y = 10
-        end
-    end
-
-    if love.keyboard.isDown("down") then
-        playerShip.y = playerShip.y + 8
-        if playerShip.y > 610 then
-            playerShip.y = 610
-        end
-    end
-
-    if love.keyboard.isDown("escape") then
-        love.event.quit()
-    end
-
-    if love.keyboard.isDown("s") then
-        spawnEnemyShips(5)
-    end
-
-    if love.keyboard.isDown("space") then
-        timeSinceLastPlayerBulletFired = timeSinceLastPlayerBulletFired + dt
-        if (timeSinceLastPlayerBulletFired > .12) then
-            local newBullet = Bullet:new(nil, playerShip.x - 5, playerShip.y + 50, 4)
-            table.insert(playerBullets, newBullet)
-            timeSinceLastPlayerBulletFired = 0
-            playSound("shot")
-        end
-    end
+    handleInput(dt)
 
     -- engine animation
     timeElapsedSinceLastEngineAnimation = timeElapsedSinceLastEngineAnimation + dt
@@ -206,15 +176,56 @@ function love.update(dt)
             end
         end
     end
+
+    -- spawn new ships
+    timeSinceLastShipSpawn = timeSinceLastShipSpawn + dt
+    if timeSinceLastShipSpawn > 3 then
+        spawnEnemyShips(5)
+        timeSinceLastShipSpawn = 0
+    end
+end
+
+function handleInput(dt)
+    if love.keyboard.isDown("up") then
+        playerShip.y = playerShip.y - 8
+        if playerShip.y < 10 then
+            playerShip.y = 10
+        end
+    end
+
+    if love.keyboard.isDown("down") then
+        playerShip.y = playerShip.y + 8
+        if playerShip.y > 610 then
+            playerShip.y = 610
+        end
+    end
+
+    if love.keyboard.isDown("escape") then
+        love.event.quit()
+    end
+
+    --if love.keyboard.isDown("s") then
+    --    spawnEnemyShips(5)
+    --end
+
+    if love.keyboard.isDown("space") then
+        timeSinceLastPlayerBulletFired = timeSinceLastPlayerBulletFired + dt
+        if (timeSinceLastPlayerBulletFired > .12) then
+            local newBullet = Bullet:new(nil, playerShip.x - 5, playerShip.y + 50, 4)
+            table.insert(playerBullets, newBullet)
+            timeSinceLastPlayerBulletFired = 0
+            playSound("shot")
+        end
+    end
 end
 
 function spawnEnemyShips(numOfShips)
-    if table.getn(enemyShips) >= maxNumberOfEnemyShips then
-        print("Can't spawn more ships, already at max " .. table.getn(enemyShips))
-        return
-    end
+    for i = 0, numOfShips, 1 do
+        if table.getn(enemyShips) >= maxNumberOfEnemyShips then
+            print("Can't spawn more ships, already at max " .. table.getn(enemyShips))
+            return
+        end
 
-    for i = 0, 5, 1 do
         local startingX = math.random(575, 1200)
         local startingY = math.random(75, 650)
         local newShip = EnemyShip:new(nil, startingX, startingY, enemyShipImg, 0.7)
