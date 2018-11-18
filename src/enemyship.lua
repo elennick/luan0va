@@ -24,7 +24,6 @@ end
 
 function EnemyShip:update(dt, enemyBullets)
     self.timeSinceLastBullet = self.timeSinceLastBullet + dt
-    print("time since last bullet: " .. self.timeSinceLastBullet)
     if self.timeSinceLastBullet > 2 then
         local newBullet = Bullet:new(nil, self.x - 25, self.y, 6)
         table.insert(enemyBullets, newBullet)
