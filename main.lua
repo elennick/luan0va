@@ -14,7 +14,8 @@ local timeSinceLastPlayerBulletFired = 0
 
 -- debug/config constants
 local audioEnabled = true
-local drawCollisionHitboxes = true
+local drawCollisionHitboxes = false
+local showMemoryUsage = true
 local numberOfBackgroundStars = 50
 
 function love.load()
@@ -108,6 +109,10 @@ function love.draw()
     -- text displays
     love.graphics.print("Score: " .. score, 1000, 25)
 
+    if showMemoryUsage then
+        love.graphics.print('Memory used (kB): ' .. collectgarbage('count'), 950, 75)
+    end
+
     -- draw collison hitboxes
     if drawCollisionHitboxes then
         for i, ship in ipairs(enemyShips) do
@@ -144,7 +149,7 @@ function love.update(dt)
             local newBullet = Bullet:new(nil, playerShip.x - 5, playerShip.y + 50, 4)
             table.insert(playerBullets, newBullet)
             timeSinceLastPlayerBulletFired = 0
-            shotSound:play()
+            playSound("shot")
         end
     end
 
@@ -191,7 +196,7 @@ function love.update(dt)
                 table.remove(enemyShips, i)
                 table.remove(playerBullets, l)
                 score = score + 25
-                explosionSound:play()
+                playSound("explosion")
             end
         end
     end
@@ -210,4 +215,21 @@ function checkCollision(x1, y1, w1, h1, x2, y2, w2, h2)
             x2 < x1 + w1 and
             y1 < y2 + h2 and
             y2 < y1 + h1
+end
+
+function playSound(sound)
+    if audioEnabled == false then
+        return
+    end
+
+    if sound == "explosion" then
+        local sfx = explosionSound:clone()
+        sfx:play()
+    elseif sound == "shot" then
+        local sfx = shotSound:clone()
+        sfx:play()
+    else
+        print("unknown sound: " .. tostring(sound))
+    end
+
 end
