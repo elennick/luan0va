@@ -18,6 +18,7 @@ local audioEnabled = true
 local drawCollisionHitboxes = false
 local showMemoryUsage = true
 local numberOfBackgroundStars = 50
+local maxNumberOfEnemyShips = 25
 
 function love.load()
     -- load images
@@ -70,7 +71,7 @@ function love.load()
     playerShip = PlayerShip:new(nil, 160, 300, playerShipImg)
 
     -- enemy ships
-    spawnEnemyShips()
+    spawnEnemyShips(15)
 end
 
 function love.draw()
@@ -138,7 +139,7 @@ function love.update(dt)
     end
 
     if love.keyboard.isDown("s") then
-        spawnEnemyShips()
+        spawnEnemyShips(5)
     end
 
     if love.keyboard.isDown("space") then
@@ -207,19 +208,19 @@ function love.update(dt)
     end
 end
 
-function spawnEnemyShips()
-    enemyShips[1] = EnemyShip:new(nil, 900, 300, enemyShipImg, 0.7)
-    enemyShips[2] = EnemyShip:new(nil, 900, 375, enemyShipImg, 0.7)
-    enemyShips[3] = EnemyShip:new(nil, 900, 450, enemyShipImg, 0.7)
-    enemyShips[4] = EnemyShip:new(nil, 975, 300, enemyShipImg, 0.7)
-    enemyShips[5] = EnemyShip:new(nil, 975, 375, enemyShipImg, 0.7)
-    enemyShips[6] = EnemyShip:new(nil, 975, 450, enemyShipImg, 0.7)
-    enemyShips[7] = EnemyShip:new(nil, 825, 375, enemyShipImg, 0.7)
-    enemyShips[8] = EnemyShip:new(nil, 825, 300, enemyShipImg, 0.7)
-    enemyShips[9] = EnemyShip:new(nil, 825, 450, enemyShipImg, 0.7)
-    enemyShips[10] = EnemyShip:new(nil, 750, 375, enemyShipImg, 0.7)
-    enemyShips[11] = EnemyShip:new(nil, 750, 300, enemyShipImg, 0.7)
-    enemyShips[12] = EnemyShip:new(nil, 750, 450, enemyShipImg, 0.7)
+function spawnEnemyShips(numOfShips)
+    if table.getn(enemyShips) >= maxNumberOfEnemyShips then
+        print("Can't spawn more ships, already at max " .. table.getn(enemyShips))
+        return
+    end
+
+    for i = 0, 5, 1 do
+        local startingX = math.random(575, 1200)
+        local startingY = math.random(75, 650)
+        local newShip = EnemyShip:new(nil, startingX, startingY, enemyShipImg, 0.7)
+        table.insert(enemyShips, newShip)
+    end
+
 end
 
 function checkCollisionOfShipAndBullet(ship, bullet)
