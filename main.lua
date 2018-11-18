@@ -52,6 +52,7 @@ function love.load()
     local song = love.audio.newSource("audio/Religions.mp3", "stream")
     print("audioEnabled: " .. tostring(audioEnabled))
     if audioEnabled then
+        song:setLooping(true)
         song:play()
     end
 
@@ -69,18 +70,7 @@ function love.load()
     playerShip = PlayerShip:new(nil, 160, 300, playerShipImg)
 
     -- enemy ships
-    enemyShips[1] = EnemyShip:new(nil, 900, 300, enemyShipImg, 0.7)
-    enemyShips[2] = EnemyShip:new(nil, 900, 375, enemyShipImg, 0.7)
-    enemyShips[3] = EnemyShip:new(nil, 900, 450, enemyShipImg, 0.7)
-    enemyShips[4] = EnemyShip:new(nil, 975, 300, enemyShipImg, 0.7)
-    enemyShips[5] = EnemyShip:new(nil, 975, 375, enemyShipImg, 0.7)
-    enemyShips[6] = EnemyShip:new(nil, 975, 450, enemyShipImg, 0.7)
-    enemyShips[7] = EnemyShip:new(nil, 825, 375, enemyShipImg, 0.7)
-    enemyShips[8] = EnemyShip:new(nil, 825, 300, enemyShipImg, 0.7)
-    enemyShips[9] = EnemyShip:new(nil, 825, 450, enemyShipImg, 0.7)
-    enemyShips[10] = EnemyShip:new(nil, 750, 375, enemyShipImg, 0.7)
-    enemyShips[11] = EnemyShip:new(nil, 750, 300, enemyShipImg, 0.7)
-    enemyShips[12] = EnemyShip:new(nil, 750, 450, enemyShipImg, 0.7)
+    spawnEnemyShips()
 end
 
 function love.draw()
@@ -145,6 +135,10 @@ function love.update(dt)
 
     if love.keyboard.isDown("escape") then
         love.event.quit()
+    end
+
+    if love.keyboard.isDown("s") then
+        spawnEnemyShips()
     end
 
     if love.keyboard.isDown("space") then
@@ -213,6 +207,21 @@ function love.update(dt)
     end
 end
 
+function spawnEnemyShips()
+    enemyShips[1] = EnemyShip:new(nil, 900, 300, enemyShipImg, 0.7)
+    enemyShips[2] = EnemyShip:new(nil, 900, 375, enemyShipImg, 0.7)
+    enemyShips[3] = EnemyShip:new(nil, 900, 450, enemyShipImg, 0.7)
+    enemyShips[4] = EnemyShip:new(nil, 975, 300, enemyShipImg, 0.7)
+    enemyShips[5] = EnemyShip:new(nil, 975, 375, enemyShipImg, 0.7)
+    enemyShips[6] = EnemyShip:new(nil, 975, 450, enemyShipImg, 0.7)
+    enemyShips[7] = EnemyShip:new(nil, 825, 375, enemyShipImg, 0.7)
+    enemyShips[8] = EnemyShip:new(nil, 825, 300, enemyShipImg, 0.7)
+    enemyShips[9] = EnemyShip:new(nil, 825, 450, enemyShipImg, 0.7)
+    enemyShips[10] = EnemyShip:new(nil, 750, 375, enemyShipImg, 0.7)
+    enemyShips[11] = EnemyShip:new(nil, 750, 300, enemyShipImg, 0.7)
+    enemyShips[12] = EnemyShip:new(nil, 750, 450, enemyShipImg, 0.7)
+end
+
 function checkCollisionOfShipAndBullet(ship, bullet)
     return checkCollision(
             ship:getTopLeftX(), ship:getTopLeftY(),
@@ -242,5 +251,4 @@ function playSound(sound)
     else
         print("unknown sound: " .. tostring(sound))
     end
-
 end
