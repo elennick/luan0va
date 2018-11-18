@@ -1,4 +1,4 @@
-EnemyShip = { x = 0, y = 0 }
+EnemyShip = { x = 0, y = 0, timeSinceLastBullet = 0 }
 
 function EnemyShip:new (o, x, y, image, scale)
     self.__index = self
@@ -6,6 +6,7 @@ function EnemyShip:new (o, x, y, image, scale)
         x = x or 0,
         y = y or 0,
         image = image,
+        timeSinceLastBullet = timeSinceLastBullet or 0,
         scale = scale or 0.7
     }, self)
 end
@@ -21,8 +22,14 @@ function EnemyShip:draw()
             self.image:getHeight() / 2)
 end
 
-function EnemyShip:update(dt)
-    -- do whatever
+function EnemyShip:update(dt, enemyBullets)
+    self.timeSinceLastBullet = self.timeSinceLastBullet + dt
+    print("time since last bullet: " .. self.timeSinceLastBullet)
+    if self.timeSinceLastBullet > 2 then
+        local newBullet = Bullet:new(nil, self.x - 25, self.y, 6)
+        table.insert(enemyBullets, newBullet)
+        self.timeSinceLastBullet = 0
+    end
 end
 
 function EnemyShip:getScaledWidth()

@@ -5,6 +5,7 @@ require("src.bullet")
 
 local stars = {}
 local enemyShips = {}
+local enemyBullets = {}
 local playerShip
 local playerBullets = {}
 
@@ -98,12 +99,15 @@ function love.draw()
     love.graphics.draw(playerShip.image, playerShip.x, playerShip.y, math.rad(90))
     love.graphics.draw(engineFlame_frames[currentFlameFrameIndex], 70, playerShip.y + 70, math.rad(180))
     for i, bullet in ipairs(playerBullets) do
-        bullet:draw()
+        bullet:draw(255, 0, 0)
     end
 
     -- enemy ships
     for i, ship in ipairs(enemyShips) do
         ship:draw()
+    end
+    for i, bullet in ipairs(enemyBullets) do
+        bullet:draw(0, 255, 0)
     end
 
     -- text displays
@@ -176,15 +180,22 @@ function love.update(dt)
     -- player ship and bullets
     playerShip:update(dt)
     for i, bullet in ipairs(playerBullets) do
-        bullet:update(dt)
+        bullet:update(dt, 10)
         if bullet.x > 1280 then
             table.remove(playerBullets, i)
         end
     end
 
-    -- enemy ships
+    -- enemy ships and bullets
     for i, ship in ipairs(enemyShips) do
-        ship:update(dt)
+        ship:update(dt, enemyBullets)
+    end
+
+    for i, bullet in ipairs(enemyBullets) do
+        bullet:update(dt, -5)
+        if bullet.x > 1280 or bullet.x < 0 then
+            table.remove(enemyBullets, i)
+        end
     end
 
     -- check collisons
