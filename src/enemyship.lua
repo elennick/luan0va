@@ -2,21 +2,41 @@ EnemyShip = {
     x = 0,
     y = 0,
     timeSinceLastBullet = 0,
-    timeSinceLastDirChange = 0
+    timeSinceLastDirChange = 0,
+    elite = false
 }
 
-function EnemyShip:new (o, x, y, image, scale)
+function EnemyShip:new (o, x, y, image, scale, elite)
+    if elite == true then
+        firingRate = 1
+        movementMultiplier = 5
+        directionChangeInterval = 3
+        scoreValue = 50
+    else
+        firingRate = math.random(3, 6)
+        movementMultiplier = 1
+        directionChangeInterval = 10
+        scoreValue = 25
+    end
+
+    velX = math.random(-1 * movementMultiplier, 1 * movementMultiplier)
+    velY = math.random(-1 * movementMultiplier, 1 * movementMultiplier)
+
     self.__index = self
     return setmetatable({
         x = x or 0,
         y = y or 0,
         image = image,
+        scale = scale or 0.7,
+        elite = elite or false,
         timeSinceLastBullet = timeSinceLastBullet or 0,
         timeSinceLastDirChange = timeSinceLastDirChange or 0,
-        scale = scale or 0.7,
-        velX = velX or math.random(-1, 1),
-        velY = velY or math.random(-1, 1),
-        firingRate = firingRate or math.random(2, 5)
+        velX = velX,
+        velY = velY,
+        firingRate = firingRate,
+        movementMultiplier = movementMultiplier,
+        directionChangeInterval = directionChangeInterval,
+        scoreValue = scoreValue
     }, self)
 end
 
@@ -40,9 +60,9 @@ function EnemyShip:update(dt, enemyBullets)
     end
 
     self.timeSinceLastDirChange = self.timeSinceLastDirChange + dt
-    if self.timeSinceLastDirChange > 10 then
-        self.velX = math.random(-1, 1)
-        self.velY = math.random(-1, 1)
+    if self.timeSinceLastDirChange > self.directionChangeInterval then
+        self.velX = math.random(-1 * movementMultiplier, 1 * movementMultiplier)
+        self.velY = math.random(-1 * movementMultiplier, 1 * movementMultiplier)
         self.timeSinceLastDirChange = 0
     end
 
@@ -72,6 +92,10 @@ end
 
 function EnemyShip:getTopLeftY()
     return self.y - self:getScaledHeight() / 2;
+end
+
+function EnemyShip:getScoreValue()
+    return self.scoreValue
 end
 
 return EnemyShip

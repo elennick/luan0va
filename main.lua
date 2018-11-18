@@ -24,7 +24,8 @@ local maxNumberOfEnemyShips = 20
 function love.load()
     -- load images
     playerShipImg = love.graphics.newImage("image/pixel_ship_red.png")
-    enemyShipImg = love.graphics.newImage("image/pixel_ship_yellow.png")
+    enemyYellowShipImg = love.graphics.newImage("image/pixel_ship_yellow.png")
+    enemyBlueShipImg = love.graphics.newImage("image/pixel_ship_blue.png")
 
     blueStarImg = love.graphics.newImage("image/stars/star_blue_giant01.png")
     redStarImg = love.graphics.newImage("image/stars/star_red_giant01.png")
@@ -169,9 +170,9 @@ function love.update(dt)
             local collisionDectected = checkCollisionOfShipAndBullet(ship, bullet)
             if collisionDectected then
                 print("collision detected")
+                score = score + enemyShips[i]:getScoreValue()
                 table.remove(enemyShips, i)
                 table.remove(playerBullets, l)
-                score = score + 25
                 playSound("explosion")
             end
         end
@@ -228,10 +229,16 @@ function spawnEnemyShips(numOfShips)
 
         local startingX = math.random(575, 1200)
         local startingY = math.random(75, 650)
-        local newShip = EnemyShip:new(nil, startingX, startingY, enemyShipImg, 0.7)
-        table.insert(enemyShips, newShip)
-    end
 
+        local shipToSpawn = math.random(1, 20)
+        if shipToSpawn == 1 then
+            local newShip = EnemyShip:new(nil, startingX, startingY, enemyBlueShipImg, 0.6, true)
+            table.insert(enemyShips, newShip)
+        else
+            local newShip = EnemyShip:new(nil, startingX, startingY, enemyYellowShipImg, 0.7, false)
+            table.insert(enemyShips, newShip)
+        end
+    end
 end
 
 function checkCollisionOfShipAndBullet(ship, bullet)
