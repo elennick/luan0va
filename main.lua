@@ -9,9 +9,9 @@ local enemyShips = {}
 local enemyBullets = {}
 local playerShip
 local playerBullets = {}
+local animations = {}
 
 local score = 0
-local timeElapsedSinceLastEngineAnimation = 0
 local timeSinceLastPlayerBulletFired = 0
 local timeSinceLastShipSpawn = 0
 local timeSinceLastEnergyGain = 0
@@ -38,6 +38,9 @@ function love.load()
     redStarImg = love.graphics.newImage("image/stars/star_red_giant01.png")
     asteroidImg = love.graphics.newImage("image/pixel_asteroid.png")
 
+    explosionSpriteSheet = love.graphics.newImage("image/explosions/explosion31.png")
+    explosionAnimation = Animation:newSpriteSheetAnimation(o, explosionSpriteSheet, false, 0, 256, 256)
+
     -- player ship
     playerShip = PlayerShip:new(nil, 115, 200, playerShipImg, maxEnergy)
 
@@ -55,7 +58,7 @@ function love.load()
                            engineFlame_frame4Img, engineFlame_frame5Img, engineFlame_frame6Img,
                            engineFlame_frame7Img, engineFlame_frame8Img, engineFlame_frame9Img }
 
-    engineAnimation = Animation:new(nil, 50, playerShip.y, engineFlame_frames, true, math.rad(180))
+    engineAnimation = Animation:newChoppedAnimation(nil, engineFlame_frames, true, math.rad(180))
 
     -- load audio
     explosionSound = love.audio.newSource("audio/effects/explosion.wav", "static")
@@ -100,6 +103,7 @@ function love.draw()
     -- player ship
     playerShip:draw()
     engineAnimation:draw(50, playerShip.y);
+
     for i, bullet in ipairs(playerBullets) do
         bullet:draw(255, 0, 0)
     end
@@ -110,6 +114,11 @@ function love.draw()
     end
     for i, bullet in ipairs(enemyBullets) do
         bullet:draw(0, 255, 0)
+    end
+
+    -- animations
+    for i, animation in ipairs(animations) do
+        animation:draw()
     end
 
     -- text displays
@@ -179,6 +188,7 @@ function love.update(dt)
 
                 if enemyShips[i].health <= 0 then
                     score = score + enemyShips[i]:getScoreValue()
+                    --insert explosion animation
                     table.remove(enemyShips, i)
                     playSound("explosion")
                 end

@@ -1,8 +1,15 @@
-Animation = { x = 0, y = 0 }
+Animation = { x = 0, y = 0, done = false }
 
-function Animation:new (o, x, y, images, loop, rotation)
+function Animation:newSpriteSheetAnimation(o, spriteSheet, loop, rotation, height, width)
+    images = {}
+
+    return self:newChoppedAnimation(o, images, loop, rotation)
+end
+
+function Animation:newChoppedAnimation (o, images, loop, rotation)
     local currentFrameIndex = 1
     local timeElapsedSinceLastFrameChange = 0
+    local done = false
 
     self.__index = self
     return setmetatable({
@@ -12,7 +19,8 @@ function Animation:new (o, x, y, images, loop, rotation)
         loop = loop or false,
         rotation = rotation or 0,
         currentFrameIndex = currentFrameIndex,
-        timeElapsedSinceLastFrameChange = timeElapsedSinceLastFrameChange
+        timeElapsedSinceLastFrameChange = timeElapsedSinceLastFrameChange,
+        done = done
     }, self)
 end
 
@@ -51,8 +59,10 @@ end
 function Animation:update(dt)
     self.timeElapsedSinceLastFrameChange = self.timeElapsedSinceLastFrameChange + dt
     if self.timeElapsedSinceLastFrameChange > .08 then
-        if self.currentFrameIndex + 1 > table.getn(self.images) then
+        if self.currentFrameIndex + 1 > table.getn(self.images) and self.loop == true then
             self.currentFrameIndex = 1
+        elseif self.currentFrameIndex + 1 > table.getn(self.images) and self.loop == false then
+            done = true
         else
             self.currentFrameIndex = self.currentFrameIndex + 1
         end
@@ -75,6 +85,10 @@ end
 
 function Animation:getTopLeftY()
     return self.y - self:getScaledHeight() / 2;
+end
+
+function Animation:getDone()
+    return self.done
 end
 
 return Animation
