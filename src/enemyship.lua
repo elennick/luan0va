@@ -19,14 +19,14 @@ function EnemyShip:new (o, x, y, image, scale, type)
         movementMultiplier = 0
         directionChangeInterval = 2.5
         scoreValue = 100
-        health = 5
+        health = 3
     else
         -- type 3 = standard slow moving slow firing ships
         firingRate = math.random(4, 6)
         movementMultiplier = 1
         directionChangeInterval = 10
         scoreValue = 25
-        health = 2
+        health = 1
     end
 
     velX = math.random(-1 * movementMultiplier, 1 * movementMultiplier)

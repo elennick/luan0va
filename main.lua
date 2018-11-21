@@ -21,9 +21,12 @@ local drawCollisionHitboxes = false
 local showMemoryUsage = true
 local numberOfBackgroundStars = 30
 local maxNumberOfEnemyShips = 20
-local energyPerShot = 5
+local energyPerShot = 8
+local maxEnergy = 200
 
 function love.load()
+    math.randomseed(os.time())
+
     -- load images
     playerShipImg = love.graphics.newImage("image/pixel_ship_red.png")
     enemyYellowShipImg = love.graphics.newImage("image/pixel_ship_yellow.png")
@@ -73,7 +76,7 @@ function love.load()
     end
 
     -- player ship
-    playerShip = PlayerShip:new(nil, 115, 200, playerShipImg)
+    playerShip = PlayerShip:new(nil, 115, 200, playerShipImg, maxEnergy)
 
     -- enemy ships
     spawnEnemyShips(10)
@@ -205,7 +208,7 @@ function love.update(dt)
 
     -- update energy
     timeSinceLastEnergyGain = timeSinceLastEnergyGain + dt
-    if playerShip.energy < 150 and timeSinceLastEnergyGain > .04 then
+    if playerShip.energy < maxEnergy and timeSinceLastEnergyGain > .03 then
         playerShip.energy = playerShip.energy + 1
         timeSinceLastEnergyGain = 0
     end
@@ -230,14 +233,10 @@ function handleInput(dt)
         love.event.quit()
     end
 
-    --if love.keyboard.isDown("s") then
-    --    spawnEnemyShips(5)
-    --end
-
     if love.keyboard.isDown("space") then
         if playerShip.energy >= energyPerShot then
             timeSinceLastPlayerBulletFired = timeSinceLastPlayerBulletFired + dt
-            if (timeSinceLastPlayerBulletFired > .10) then
+            if timeSinceLastPlayerBulletFired > .10 then
                 local newBullet = Bullet:new(nil, playerShip.x + 25, playerShip.y, 4)
                 table.insert(playerBullets, newBullet)
                 timeSinceLastPlayerBulletFired = 0
