@@ -2,6 +2,7 @@ require("src.backgroundstar")
 require("src.enemyship")
 require("src.playership")
 require("src.bullet")
+require("src.animation")
 
 local stars = {}
 local enemyShips = {}
@@ -37,6 +38,10 @@ function love.load()
     redStarImg = love.graphics.newImage("image/stars/star_red_giant01.png")
     asteroidImg = love.graphics.newImage("image/pixel_asteroid.png")
 
+    -- player ship
+    playerShip = PlayerShip:new(nil, 115, 200, playerShipImg, maxEnergy)
+
+    -- engine animation
     engineFlame_frame1Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame4-1.png")
     engineFlame_frame2Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame4-2.png")
     engineFlame_frame3Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame4-3.png")
@@ -49,7 +54,8 @@ function love.load()
     engineFlame_frames = { engineFlame_frame1Img, engineFlame_frame2Img, engineFlame_frame3Img,
                            engineFlame_frame4Img, engineFlame_frame5Img, engineFlame_frame6Img,
                            engineFlame_frame7Img, engineFlame_frame8Img, engineFlame_frame9Img }
-    currentFlameFrameIndex = 1;
+
+    engineAnimation = Animation:new(nil, 50, playerShip.y, engineFlame_frames, true, math.rad(180))
 
     -- load audio
     explosionSound = love.audio.newSource("audio/effects/explosion.wav", "static")
@@ -75,9 +81,6 @@ function love.load()
         stars[i] = BackgroundStar:new(nil, x, y, size, 255, 255, 255, speed)
     end
 
-    -- player ship
-    playerShip = PlayerShip:new(nil, 115, 200, playerShipImg, maxEnergy)
-
     -- enemy ships
     spawnEnemyShips(10)
 end
@@ -96,7 +99,7 @@ function love.draw()
 
     -- player ship
     playerShip:draw()
-    love.graphics.draw(engineFlame_frames[currentFlameFrameIndex], 80, playerShip.y + 22, math.rad(180))
+    engineAnimation:draw(50, playerShip.y);
     for i, bullet in ipairs(playerBullets) do
         bullet:draw(255, 0, 0)
     end
@@ -132,14 +135,7 @@ function love.update(dt)
     handleInput(dt)
 
     -- engine animation
-    timeElapsedSinceLastEngineAnimation = timeElapsedSinceLastEngineAnimation + dt
-    if timeElapsedSinceLastEngineAnimation > .08 then
-        currentFlameFrameIndex = currentFlameFrameIndex + 1
-        if currentFlameFrameIndex > table.getn(engineFlame_frames) then
-            currentFlameFrameIndex = 1
-        end
-        timeElapsedSinceLastEngineAnimation = 0
-    end
+    engineAnimation:update(dt)
 
     -- background stars
     for i, star in ipairs(stars) do
