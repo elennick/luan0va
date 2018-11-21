@@ -13,19 +13,22 @@ local score = 0
 local timeElapsedSinceLastEngineAnimation = 0
 local timeSinceLastPlayerBulletFired = 0
 local timeSinceLastShipSpawn = 0
+local timeSinceLastEnergyGain = 0
 
 -- debug/config constants
 local audioEnabled = true
 local drawCollisionHitboxes = false
 local showMemoryUsage = true
-local numberOfBackgroundStars = 50
+local numberOfBackgroundStars = 30
 local maxNumberOfEnemyShips = 20
+local energyPerShot = 5
 
 function love.load()
     -- load images
     playerShipImg = love.graphics.newImage("image/pixel_ship_red.png")
     enemyYellowShipImg = love.graphics.newImage("image/pixel_ship_yellow.png")
     enemyBlueShipImg = love.graphics.newImage("image/pixel_ship_blue.png")
+    enemyGreenShipImg = love.graphics.newImage("image/pixel_ship_green.png")
 
     blueStarImg = love.graphics.newImage("image/stars/star_blue_giant01.png")
     redStarImg = love.graphics.newImage("image/stars/star_red_giant01.png")
@@ -70,7 +73,7 @@ function love.load()
     end
 
     -- player ship
-    playerShip = PlayerShip:new(nil, 160, 300, playerShipImg)
+    playerShip = PlayerShip:new(nil, 115, 200, playerShipImg)
 
     -- enemy ships
     spawnEnemyShips(10)
@@ -89,8 +92,8 @@ function love.draw()
     love.graphics.draw(blueStarImg, 600, 400)
 
     -- player ship
-    love.graphics.draw(playerShip.image, playerShip.x, playerShip.y, math.rad(90))
-    love.graphics.draw(engineFlame_frames[currentFlameFrameIndex], 70, playerShip.y + 70, math.rad(180))
+    playerShip:draw()
+    love.graphics.draw(engineFlame_frames[currentFlameFrameIndex], 80, playerShip.y + 22, math.rad(180))
     for i, bullet in ipairs(playerBullets) do
         bullet:draw(255, 0, 0)
     end
@@ -105,6 +108,8 @@ function love.draw()
 
     -- text displays
     love.graphics.print("Score: " .. score, 1000, 25)
+    love.graphics.print("Health: " .. playerShip.health, 200, 25)
+    love.graphics.print("Energy: " .. playerShip.energy, 200, 50)
 
     if showMemoryUsage then
         love.graphics.print('Memory used (kB): ' .. collectgarbage('count'), 950, 75)
@@ -164,17 +169,30 @@ function love.update(dt)
         end
     end
 
-    -- check collisons
+    -- check collisions
     for i, ship in ipairs(enemyShips) do
         for l, bullet in ipairs(playerBullets) do
             local collisionDectected = checkCollisionOfShipAndBullet(ship, bullet)
             if collisionDectected then
-                print("collision detected")
-                score = score + enemyShips[i]:getScoreValue()
-                table.remove(enemyShips, i)
+                print("enemy ship collision detected")
+                enemyShips[i].health = enemyShips[i].health - 1;
                 table.remove(playerBullets, l)
-                playSound("explosion")
+
+                if enemyShips[i].health <= 0 then
+                    score = score + enemyShips[i]:getScoreValue()
+                    table.remove(enemyShips, i)
+                    playSound("explosion")
+                end
             end
+        end
+    end
+
+    for i, bullet in ipairs(enemyBullets) do
+        local collisionDectected = checkCollisionOfShipAndBullet(playerShip, bullet)
+        if collisionDectected then
+            print("player ship collision detected")
+            playerShip.health = playerShip.health - 1
+            table.remove(enemyBullets, i)
         end
     end
 
@@ -184,20 +202,27 @@ function love.update(dt)
         spawnEnemyShips(5)
         timeSinceLastShipSpawn = 0
     end
+
+    -- update energy
+    timeSinceLastEnergyGain = timeSinceLastEnergyGain + dt
+    if playerShip.energy < 150 and timeSinceLastEnergyGain > .04 then
+        playerShip.energy = playerShip.energy + 1
+        timeSinceLastEnergyGain = 0
+    end
 end
 
 function handleInput(dt)
     if love.keyboard.isDown("up") then
         playerShip.y = playerShip.y - 8
-        if playerShip.y < 10 then
-            playerShip.y = 10
+        if playerShip.y < 45 then
+            playerShip.y = 45
         end
     end
 
     if love.keyboard.isDown("down") then
         playerShip.y = playerShip.y + 8
-        if playerShip.y > 610 then
-            playerShip.y = 610
+        if playerShip.y > 670 then
+            playerShip.y = 670
         end
     end
 
@@ -210,12 +235,15 @@ function handleInput(dt)
     --end
 
     if love.keyboard.isDown("space") then
-        timeSinceLastPlayerBulletFired = timeSinceLastPlayerBulletFired + dt
-        if (timeSinceLastPlayerBulletFired > .12) then
-            local newBullet = Bullet:new(nil, playerShip.x - 5, playerShip.y + 50, 4)
-            table.insert(playerBullets, newBullet)
-            timeSinceLastPlayerBulletFired = 0
-            playSound("shot")
+        if playerShip.energy >= energyPerShot then
+            timeSinceLastPlayerBulletFired = timeSinceLastPlayerBulletFired + dt
+            if (timeSinceLastPlayerBulletFired > .10) then
+                local newBullet = Bullet:new(nil, playerShip.x + 25, playerShip.y, 4)
+                table.insert(playerBullets, newBullet)
+                timeSinceLastPlayerBulletFired = 0
+                playSound("shot")
+                playerShip.energy = playerShip.energy - energyPerShot
+            end
         end
     end
 end
@@ -230,12 +258,15 @@ function spawnEnemyShips(numOfShips)
         local startingX = math.random(575, 1200)
         local startingY = math.random(75, 650)
 
-        local shipToSpawn = math.random(1, 20)
+        local shipToSpawn = math.random(1, 8)
         if shipToSpawn == 1 then
-            local newShip = EnemyShip:new(nil, startingX, startingY, enemyBlueShipImg, 0.6, true)
+            local newShip = EnemyShip:new(nil, startingX, startingY, enemyBlueShipImg, 0.55, 1)
+            table.insert(enemyShips, newShip)
+        elseif shipToSpawn == 2 then
+            local newShip = EnemyShip:new(nil, startingX, startingY, enemyGreenShipImg, 1.25, 2)
             table.insert(enemyShips, newShip)
         else
-            local newShip = EnemyShip:new(nil, startingX, startingY, enemyYellowShipImg, 0.7, false)
+            local newShip = EnemyShip:new(nil, startingX, startingY, enemyYellowShipImg, 0.7, 3)
             table.insert(enemyShips, newShip)
         end
     end
@@ -246,7 +277,7 @@ function checkCollisionOfShipAndBullet(ship, bullet)
             ship:getTopLeftX(), ship:getTopLeftY(),
             ship:getScaledWidth(), ship:getScaledHeight(),
             bullet.x, bullet.y,
-            5, 5)
+            5, 5) --todo make this variable based on the bullet size, not hard coded to a width of 5
 end
 
 function checkCollision(x1, y1, w1, h1, x2, y2, w2, h2)

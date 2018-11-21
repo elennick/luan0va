@@ -2,21 +2,31 @@ EnemyShip = {
     x = 0,
     y = 0,
     timeSinceLastBullet = 0,
-    timeSinceLastDirChange = 0,
-    elite = false
+    timeSinceLastDirChange = 0
 }
 
-function EnemyShip:new (o, x, y, image, scale, elite)
-    if elite == true then
+function EnemyShip:new (o, x, y, image, scale, type)
+    if type == 1 then
+        -- type 1 = elite, fast moving blue ships
         firingRate = 1
-        movementMultiplier = 5
-        directionChangeInterval = 3
+        movementMultiplier = 7
+        directionChangeInterval = 2.5
         scoreValue = 50
+        health = 1
+    elseif type == 2 then
+        -- type 2 = elite, large, stationary fast firing ships
+        firingRate = 3
+        movementMultiplier = 0
+        directionChangeInterval = 2.5
+        scoreValue = 100
+        health = 5
     else
-        firingRate = math.random(3, 6)
+        -- type 3 = standard slow moving slow firing ships
+        firingRate = math.random(4, 6)
         movementMultiplier = 1
         directionChangeInterval = 10
         scoreValue = 25
+        health = 2
     end
 
     velX = math.random(-1 * movementMultiplier, 1 * movementMultiplier)
@@ -36,7 +46,8 @@ function EnemyShip:new (o, x, y, image, scale, elite)
         firingRate = firingRate,
         movementMultiplier = movementMultiplier,
         directionChangeInterval = directionChangeInterval,
-        scoreValue = scoreValue
+        scoreValue = scoreValue,
+        health = health
     }, self)
 end
 
@@ -61,8 +72,8 @@ function EnemyShip:update(dt, enemyBullets)
 
     self.timeSinceLastDirChange = self.timeSinceLastDirChange + dt
     if self.timeSinceLastDirChange > self.directionChangeInterval then
-        self.velX = math.random(-1 * movementMultiplier, 1 * movementMultiplier)
-        self.velY = math.random(-1 * movementMultiplier, 1 * movementMultiplier)
+        self.velX = math.random(-1 * self.movementMultiplier, 1 * self.movementMultiplier)
+        self.velY = math.random(-1 * self.movementMultiplier, 1 * self.movementMultiplier)
         self.timeSinceLastDirChange = 0
     end
 
