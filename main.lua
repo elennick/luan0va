@@ -2,7 +2,10 @@ require("src.backgroundstar")
 require("src.enemyship")
 require("src.playership")
 require("src.bullet")
-require("src.animation")
+require("src.engineanimation")
+require("src.animationwrapper")
+
+local anim8 = require "libs.anim8"
 
 local stars = {}
 local enemyShips = {}
@@ -16,10 +19,12 @@ local timeSinceLastPlayerBulletFired = 0
 local timeSinceLastShipSpawn = 0
 local timeSinceLastEnergyGain = 0
 
--- debug/config constants
+-- debug
 local audioEnabled = true
 local drawCollisionHitboxes = false
-local showMemoryUsage = true
+local showMemoryUsage = false
+
+-- config
 local numberOfBackgroundStars = 30
 local maxNumberOfEnemyShips = 20
 local energyPerShot = 8
@@ -39,7 +44,8 @@ function love.load()
     asteroidImg = love.graphics.newImage("image/pixel_asteroid.png")
 
     explosionSpriteSheet = love.graphics.newImage("image/explosions/explosion31.png")
-    explosionAnimation = Animation:newSpriteSheetAnimation(o, explosionSpriteSheet, false, 0, 256, 256)
+    explosionGrid = anim8.newGrid(256, 256, explosionSpriteSheet:getWidth(), explosionSpriteSheet:getHeight())
+    explosionAnimation = anim8.newAnimation(explosionGrid('1-4', 1, '1-4', 2, '1-4', 3, '1-4', 4), .04)
 
     -- player ship
     playerShip = PlayerShip:new(nil, 115, 200, playerShipImg, maxEnergy)
@@ -57,8 +63,7 @@ function love.load()
     engineFlame_frames = { engineFlame_frame1Img, engineFlame_frame2Img, engineFlame_frame3Img,
                            engineFlame_frame4Img, engineFlame_frame5Img, engineFlame_frame6Img,
                            engineFlame_frame7Img, engineFlame_frame8Img, engineFlame_frame9Img }
-
-    engineAnimation = Animation:newChoppedAnimation(nil, engineFlame_frames, true, math.rad(180))
+    engineAnimation = EngineAnimation:new(nil, engineFlame_frames, true, math.rad(180), .08)
 
     -- load audio
     explosionSound = love.audio.newSource("audio/effects/explosion.wav", "static")
@@ -102,7 +107,7 @@ function love.draw()
 
     -- player ship
     playerShip:draw()
-    engineAnimation:draw(50, playerShip.y);
+    engineAnimation:drawAtPosition(50, playerShip.y);
 
     for i, bullet in ipairs(playerBullets) do
         bullet:draw(255, 0, 0)
@@ -146,6 +151,14 @@ function love.update(dt)
     -- engine animation
     engineAnimation:update(dt)
 
+    -- other animations
+    for i, animation in ipairs(animations) do
+        animation:update(dt)
+        if animation.elapsedDuration >= animation.expiresAfter then
+            table.remove(animations, i)
+        end
+    end
+
     -- background stars
     for i, star in ipairs(stars) do
         star.x = star.x - star.speed
@@ -188,7 +201,14 @@ function love.update(dt)
 
                 if enemyShips[i].health <= 0 then
                     score = score + enemyShips[i]:getScoreValue()
-                    --insert explosion animation
+                    table.insert(animations,
+                            AnimationWrapper:new(o,
+                                    explosionSpriteSheet,
+                                    explosionAnimation,
+                                    enemyShips[i].x,
+                                    enemyShips[i].y,
+                                    .64,
+                                    enemyShips[i].scale))
                     table.remove(enemyShips, i)
                     playSound("explosion")
                 end
