@@ -43,9 +43,15 @@ function love.load()
     redStarImg = love.graphics.newImage("image/stars/star_red_giant01.png")
     asteroidImg = love.graphics.newImage("image/pixel_asteroid.png")
 
+    -- explosion animation
     explosionSpriteSheet = love.graphics.newImage("image/explosions/explosion31.png")
     explosionGrid = anim8.newGrid(256, 256, explosionSpriteSheet:getWidth(), explosionSpriteSheet:getHeight())
     explosionAnimation = anim8.newAnimation(explosionGrid('1-4', 1, '1-4', 2, '1-4', 3, '1-4', 4), .04)
+
+    -- spawn animation
+    spawnSpriteSheet = love.graphics.newImage("image/spawn.png")
+    spawnGrid = anim8.newGrid(100, 100, spawnSpriteSheet:getWidth(), spawnSpriteSheet:getHeight())
+    spawnAnimation = anim8.newAnimation(spawnGrid('1-6', 1), .025)
 
     -- player ship
     playerShip = PlayerShip:new(nil, 115, 200, playerShipImg, maxEnergy)
@@ -282,18 +288,31 @@ function spawnEnemyShips(numOfShips)
 
         local startingX = math.random(575, 1200)
         local startingY = math.random(75, 650)
+        local scale
 
         local shipToSpawn = math.random(1, 8)
         if shipToSpawn == 1 then
-            local newShip = EnemyShip:new(nil, startingX, startingY, enemyBlueShipImg, 0.55, 1)
+            scale = 0.55
+            local newShip = EnemyShip:new(nil, startingX, startingY, enemyBlueShipImg, scale, 1)
             table.insert(enemyShips, newShip)
         elseif shipToSpawn == 2 then
-            local newShip = EnemyShip:new(nil, startingX, startingY, enemyGreenShipImg, 1.25, 2)
+            scale = 1.25
+            local newShip = EnemyShip:new(nil, startingX, startingY, enemyGreenShipImg, scale, 2)
             table.insert(enemyShips, newShip)
         else
-            local newShip = EnemyShip:new(nil, startingX, startingY, enemyYellowShipImg, 0.7, 3)
+            scale = 0.7
+            local newShip = EnemyShip:new(nil, startingX, startingY, enemyYellowShipImg, scale, 3)
             table.insert(enemyShips, newShip)
         end
+
+        table.insert(animations,
+                AnimationWrapper:new(o,
+                        spawnSpriteSheet,
+                        spawnAnimation,
+                        startingX,
+                        startingY,
+                        .1,
+                        scale))
     end
 end
 
