@@ -31,6 +31,7 @@ local numberOfBackgroundStars = 30
 local maxNumberOfEnemyShips = 20
 local energyPerShot = 8
 local maxEnergy = 200
+local maxHealth = 10
 
 function love.load()
     math.randomseed(os.time())
@@ -61,7 +62,7 @@ function love.load()
     spawnAnimation = anim8.newAnimation(spawnGrid('1-6', 1), .025)
 
     -- player ship
-    playerShip = PlayerShip:new(nil, 115, 200, playerShipImg, maxEnergy)
+    playerShip = PlayerShip:new(nil, 115, 200, playerShipImg, maxEnergy, maxHealth)
 
     -- engine animation
     engineFlame_frame1Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame4-1.png")

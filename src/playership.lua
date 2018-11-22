@@ -1,12 +1,12 @@
 PlayerShip = { x = 0, y = 0 }
 
-function PlayerShip:new (o, x, y, image, startingEnergy)
+function PlayerShip:new (o, x, y, image, startingEnergy, health)
     self.__index = self
     return setmetatable({
         x = x or 0,
         y = y or 0,
         image = image,
-        health = 10,
+        health = health or 10,
         energy = startingEnergy,
         scale = 0.8
     }, self)
