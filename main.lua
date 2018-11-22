@@ -18,6 +18,8 @@ local score = 0
 local timeSinceLastPlayerBulletFired = 0
 local timeSinceLastShipSpawn = 0
 local timeSinceLastEnergyGain = 0
+local paused = false
+local playerDead = false
 
 -- debug
 local audioEnabled = true
@@ -43,10 +45,15 @@ function love.load()
     redStarImg = love.graphics.newImage("image/stars/star_red_giant01.png")
     asteroidImg = love.graphics.newImage("image/pixel_asteroid.png")
 
-    -- explosion animation
+    -- enemy ship explosion animation
     explosionSpriteSheet = love.graphics.newImage("image/explosions/explosion31.png")
     explosionGrid = anim8.newGrid(256, 256, explosionSpriteSheet:getWidth(), explosionSpriteSheet:getHeight())
     explosionAnimation = anim8.newAnimation(explosionGrid('1-4', 1, '1-4', 2, '1-4', 3, '1-4', 4), .04)
+
+    -- player ship explosion animation
+    playerExplosionSpriteSheet = love.graphics.newImage("image/explosions/explosion23.png")
+    playerExplosionGrid = anim8.newGrid(256, 256, playerExplosionSpriteSheet:getWidth(), playerExplosionSpriteSheet:getHeight())
+    playerExplosionAnimation = anim8.newAnimation(playerExplosionGrid('1-4', 1, '1-4', 2, '1-4', 3, '1-4', 4), .08)
 
     -- spawn animation
     spawnSpriteSheet = love.graphics.newImage("image/spawn.png")
@@ -78,10 +85,14 @@ function love.load()
     shotSound = love.audio.newSource("audio/effects/shot.wav", "static")
     shotSound:setVolume(0.4)
 
+    gameOverSound = love.audio.newSource("audio/effects/277403__landlucky__game-over-sfx-and-voice.wav", "static")
+    gameOverSound:setVolume(1)
+
     local song = love.audio.newSource("audio/Religions.mp3", "stream")
     print("audioEnabled: " .. tostring(audioEnabled))
     if audioEnabled then
         song:setLooping(true)
+        song:setVolume(0.7)
         song:play()
     end
 
@@ -110,14 +121,6 @@ function love.draw()
 
     -- background big blue stars
     love.graphics.draw(blueStarImg, 600, 400)
-
-    -- player ship
-    playerShip:draw()
-    engineAnimation:drawAtPosition(50, playerShip.y);
-
-    for i, bullet in ipairs(playerBullets) do
-        bullet:draw(255, 0, 0)
-    end
 
     -- enemy ships
     for i, ship in ipairs(enemyShips) do
@@ -149,6 +152,18 @@ function love.draw()
                     ship:getScaledWidth(), ship:getScaledHeight())
         end
     end
+
+    -- player ship
+    if playerDead == false then
+        playerShip:draw()
+        engineAnimation:drawAtPosition(50, playerShip.y)
+    else
+        love.graphics.print("GAME OVER", 350, 300, 0, 8, 8)
+    end
+
+    for i, bullet in ipairs(playerBullets) do
+        bullet:draw(255, 0, 0)
+    end
 end
 
 function love.update(dt)
@@ -156,14 +171,6 @@ function love.update(dt)
 
     -- engine animation
     engineAnimation:update(dt)
-
-    -- other animations
-    for i, animation in ipairs(animations) do
-        animation:update(dt)
-        if animation.elapsedDuration >= animation.expiresAfter then
-            table.remove(animations, i)
-        end
-    end
 
     -- background stars
     for i, star in ipairs(stars) do
@@ -176,7 +183,10 @@ function love.update(dt)
     end
 
     -- player ship and bullets
-    playerShip:update(dt)
+    if playerDead == false then
+        playerShip:update(dt)
+    end
+
     for i, bullet in ipairs(playerBullets) do
         bullet:update(dt, 10)
         if bullet.x > 1280 then
@@ -193,6 +203,14 @@ function love.update(dt)
         bullet:update(dt, -5)
         if bullet.x > 1280 or bullet.x < 0 then
             table.remove(enemyBullets, i)
+        end
+    end
+
+    -- other animations
+    for i, animation in ipairs(animations) do
+        animation:update(dt)
+        if animation.elapsedDuration >= animation.expiresAfter then
+            table.remove(animations, i)
         end
     end
 
@@ -244,6 +262,21 @@ function love.update(dt)
         playerShip.energy = playerShip.energy + 1
         timeSinceLastEnergyGain = 0
     end
+
+    -- check if player is dead
+    if playerShip.health <= 0 and playerDead == false then
+        playerDead = true
+        love.audio.stop()
+        playSound("gameover")
+        table.insert(animations,
+                AnimationWrapper:new(o,
+                        playerExplosionSpriteSheet,
+                        playerExplosionAnimation,
+                        playerShip.x,
+                        playerShip.y,
+                        1.28,
+                        playerShip.scale * 2.5))
+    end
 end
 
 function handleInput(dt)
@@ -265,7 +298,7 @@ function handleInput(dt)
         love.event.quit()
     end
 
-    if love.keyboard.isDown("space") then
+    if love.keyboard.isDown("space") and playerDead == false then
         if playerShip.energy >= energyPerShot then
             timeSinceLastPlayerBulletFired = timeSinceLastPlayerBulletFired + dt
             if timeSinceLastPlayerBulletFired > .10 then
@@ -341,6 +374,9 @@ function playSound(sound)
         sfx:play()
     elseif sound == "shot" then
         local sfx = shotSound:clone()
+        sfx:play()
+    elseif sound == "gameover" then
+        local sfx = gameOverSound:clone()
         sfx:play()
     else
         print("unknown sound: " .. tostring(sound))
