@@ -5,7 +5,8 @@ require("src.bullet")
 require("src.engineanimation")
 require("src.animationwrapper")
 
-local anim8 = require "libs.anim8"
+local anim8 = require("libs.anim8")
+local Moan = require("libs.Moan")
 
 local stars = {}
 local enemyShips = {}
@@ -168,7 +169,15 @@ function love.draw()
 end
 
 function love.update(dt)
+    -- handle inputs
     handleInput(dt)
+
+    if paused then
+        handlePausedInput(dt)
+        return
+    end
+
+    handleUnpausedInput(dt)
 
     -- engine animation
     engineAnimation:update(dt)
@@ -281,6 +290,22 @@ function love.update(dt)
 end
 
 function handleInput(dt)
+    if love.keyboard.isDown("escape") then
+        love.event.quit()
+    end
+end
+
+function handlePausedInput(dt)
+    if love.keyboard.isDown("p") then
+        paused = false
+    end
+end
+
+function handleUnpausedInput(dt)
+    if love.keyboard.isDown("p") then
+        paused = true
+    end
+
     if love.keyboard.isDown("up") then
         playerShip.y = playerShip.y - 8
         if playerShip.y < 45 then
@@ -293,10 +318,6 @@ function handleInput(dt)
         if playerShip.y > 670 then
             playerShip.y = 670
         end
-    end
-
-    if love.keyboard.isDown("escape") then
-        love.event.quit()
     end
 
     if love.keyboard.isDown("space") and playerDead == false then
