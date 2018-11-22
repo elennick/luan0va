@@ -166,6 +166,13 @@ function love.draw()
     for i, bullet in ipairs(playerBullets) do
         bullet:draw(255, 0, 0)
     end
+
+    -- if paused
+    if paused and playerDead == false then
+        love.graphics.print("GAME PAUSED", 275, 300, 0, 8, 8)
+        love.graphics.print("Press 'Q' to Quit", 475, 425, 0, 3, 3)
+    end
+
 end
 
 function love.update(dt)
@@ -290,20 +297,25 @@ function love.update(dt)
 end
 
 function handleInput(dt)
+end
+
+function handlePausedInput(dt)
     if love.keyboard.isDown("escape") then
+        paused = false
+    end
+
+    if love.keyboard.isDown("q") then
         love.event.quit()
     end
 end
 
-function handlePausedInput(dt)
-    if love.keyboard.isDown("p") then
-        paused = false
-    end
-end
-
 function handleUnpausedInput(dt)
-    if love.keyboard.isDown("p") then
+    if love.keyboard.isDown("escape") and playerDead == false then
         paused = true
+    end
+
+    if love.keyboard.isDown("escape") and playerDead == true then
+        love.event.quit()
     end
 
     if love.keyboard.isDown("up") then
