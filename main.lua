@@ -122,7 +122,8 @@ function love.load()
 
     Moan.speak({ "Admiral Skittles", { 255, 255, 255 } },
             {
-                "Hey kid! While you were out on that training mission, the Frittata Armada swooped in and attacked!  Most of the fleet has scattered or been destroyed... it's up to you to save what's left!",
+                "*** INCOMING TRANSMISSION ***",
+                "Hey kid! While you were out on that training mission, the Frittata Armada swooped in and attacked!  Most of the fleet has scattered or been destroyed...  it's up to you to save what's left!",
                 "Don't forget your training! SPACEBAR to fire your cannons and the UP and DOWN buttons to dodge.  You have limited ENERGY so don't forget to let your cannons cool down and recharge sometimes.",
                 "I'll check in once I get to safe spot...  here they come!" },
             { image = mSgtSkittlesPortrait,
@@ -363,17 +364,31 @@ function handleUnpausedInput(dt)
 end
 
 function drawHealthAndEnergyBars()
+    -- armor
+    --love.graphics.print("Armor", 608, 8)
     local healthPercentage = playerShip.health / maxHealth
-    local barLength = healthPercentage * 200
+    local healthBarLength = healthPercentage * 200
 
-    love.graphics.print("Armor", 608, 8)
     love.graphics.setColor(255, 255, 255)
     love.graphics.polygon("fill", 424, 38, 856, 38, 842, 52, 438, 52)
     if playerShip.health > 0 then
         love.graphics.setColor(255, 0, 0)
-        love.graphics.polygon("fill", 640, 40, 630 - barLength, 40, 640 - barLength, 50, 640, 50)
-        love.graphics.polygon("fill", 640, 40, 650 + barLength, 40, 640 + barLength, 50, 640, 50)
+        love.graphics.polygon("fill", 640, 40, 630 - healthBarLength, 40, 640 - healthBarLength, 50, 640, 50)
+        love.graphics.polygon("fill", 640, 40, 650 + healthBarLength, 40, 640 + healthBarLength, 50, 640, 50)
     end
+
+    -- energy
+    local energyPercentage = playerShip.energy / maxEnergy
+    local energyBarLength = energyPercentage * 200
+
+    love.graphics.setColor(255, 255, 255)
+    love.graphics.polygon("fill", 424, 53, 856, 53, 842, 67, 438, 67)
+    if playerShip.energy > 0 then
+        love.graphics.setColor(1, .5, 0)
+        love.graphics.polygon("fill", 640, 55, 630 - energyBarLength, 55, 640 - energyBarLength, 65, 640, 65)
+        love.graphics.polygon("fill", 640, 55, 650 + energyBarLength, 55, 640 + energyBarLength, 65, 640, 65)
+    end
+
     love.graphics.setColor(255, 255, 255)
 end
 
@@ -381,9 +396,10 @@ function handleMessageBoxes()
     if score > level2Threshold and level <= 1 then
         Moan.speak({ "Admiral Skittles", { 255, 255, 255 } },
                 {
-                    "Hey kid! I'm still being chased but I had to pop in and warn you... the Frittata Armada has called out their elite pilots! Keep an eye out for blue sharpshooter ships!",
-                    "They are extremely agile and fire faster than the standard yellow armada fodder. Don't let them hit you too many times or your armor will fail!",
-                    "**EXPLOSION** **WARNING ALARM** Ahh I took a hit! I've got to go kid, keep up the good work!" },
+                    "*** INCOMING TRANSMISSION ***",
+                    "Hey kid! I'm still being chased but I had to pop in and warn you...  the Frittata Armada has called out their elite pilots!  Keep an eye out for blue sharpshooter ships!",
+                    "They are extremely agile and fire faster than the standard yellow armada fodder.  Don't let them hit you too many times or your armor will fail!",
+                    "**EXPLOSION**  **WARNING ALARM**  Ahhhh I took a hit!  I've got to go kid, keep up the good work!" },
                 { image = mSgtSkittlesPortrait,
                   onstart = function()
                       Moan.UI.messageboxPos = "bottom"
@@ -399,9 +415,10 @@ function handleMessageBoxes()
     if score > level3Threshold and level <= 2 then
         Moan.speak({ "Admiral Skittles", { 255, 255, 255 } },
                 {
-                    "Hey kid! Looks like you're making out pretty well... I've got half the armada chasing me down at this point. Don't know how much longer I'll make it...",
-                    "The Frit's have pulled out all the stops and are now deploying their bombers... they fire fast and have super strong armor. Don't be surprised if you have to hit them a few times before they go down.",
-                    "Best of luck out there... I hope we get to chat again." },
+                    "*** INCOMING TRANSMISSION ***",
+                    "Hey kid! Looks like you're making out pretty well...  I've got half the armada chasing me down at this point.  Don't know how much longer I'll make it...",
+                    "The Frit's have pulled out all the stops and are now deploying their bombers...  they fire fast and have super strong armor.  Don't be surprised if you have to hit them a few times before they go down.",
+                    "Best of luck out there...  I hope we get to chat again." },
                 { image = mSgtSkittlesPortrait,
                   onstart = function()
                       Moan.UI.messageboxPos = "bottom"
@@ -417,7 +434,8 @@ function handleMessageBoxes()
     if score > level4Threshold and level <= 3 then
         Moan.speak({ "Admiral Skittles", { 255, 255, 255 } },
                 {
-                    "Ok... this is it kid! You've given the armada such a beating that they've called out all their spare ships and pilots!",
+                    "*** INCOMING TRANSMISSION ***",
+                    "Ok...  this is it kid!  You've given the armada such a beating that they've called out all their spare ships and pilots!",
                     "Get through this wave and we might be in the clear!!!" },
                 { image = mSgtSkittlesPortrait,
                   onstart = function()
