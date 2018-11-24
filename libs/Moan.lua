@@ -358,7 +358,7 @@ function Moan.draw()
     local optionsSpace = fontHeight/1.5
 
     local fontColour = { 255, 255, 255, 255 }
-    local boxColour = { 0, 0, 0, 222 }
+    local boxColour = { .15, .22, .35, 222 }
 
 
     love.graphics.setFont(Moan.font)

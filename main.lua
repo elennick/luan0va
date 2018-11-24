@@ -21,6 +21,7 @@ local timeSinceLastShipSpawn = 0
 local timeSinceLastEnergyGain = 0
 local paused = false
 local playerDead = false
+local level = 1
 
 -- debug
 local audioEnabled = true
@@ -32,13 +33,17 @@ local numberOfBackgroundStars = 30
 local maxNumberOfEnemyShips = 20
 local energyPerShot = 8
 local maxEnergy = 200
-local maxHealth = 10
+local maxHealth = 100
+local level2Threshold = 3000
+local level3Threshold = 7000
+local level4Threshold = 13000
 
 function love.load()
     math.randomseed(os.time())
 
-    font = love.graphics.newFont(15)
-    love.graphics.setFont(font)
+    -- fonts
+    Moan.font = love.graphics.newFont("font/Pixel-UniCode.ttf", 32)
+    love.graphics.setNewFont("font/Pixel-UniCode.ttf", 15)
 
     -- load images
     playerShipImg = love.graphics.newImage("image/pixel_ship_red.png")
@@ -49,6 +54,8 @@ function love.load()
     blueStarImg = love.graphics.newImage("image/stars/star_blue_giant01.png")
     redStarImg = love.graphics.newImage("image/stars/star_red_giant01.png")
     asteroidImg = love.graphics.newImage("image/pixel_asteroid.png")
+
+    mSgtSkittlesPortrait = love.graphics.newImage("image/portrait/P01_A_01.png")
 
     -- enemy ship explosion animation
     explosionSpriteSheet = love.graphics.newImage("image/explosions/explosion31.png")
@@ -90,16 +97,15 @@ function love.load()
     shotSound = love.audio.newSource("audio/effects/shot.wav", "static")
     shotSound:setVolume(0.4)
 
-    gameOverSound = love.audio.newSource("audio/effects/277403__landlucky__game-over-sfx-and-voice.wav", "static")
+    gameOverSound = love.audio.newSource("audio/effects/gameover.wav", "static")
     gameOverSound:setVolume(1)
 
-    local song = love.audio.newSource("audio/Religions.mp3", "stream")
+    shipHitSound = love.audio.newSource("audio/effects/shiphit.wav", "static")
+    shipHitSound:setVolume(1)
+
+    song = love.audio.newSource("audio/Religions.mp3", "stream")
     print("audioEnabled: " .. tostring(audioEnabled))
-    if audioEnabled then
-        song:setLooping(true)
-        song:setVolume(0.7)
-        song:play()
-    end
+    playMusic()
 
     -- generate initial background stars
     print("numberOfBackgroundStars: " .. tostring(numberOfBackgroundStars))
@@ -111,8 +117,21 @@ function love.load()
         stars[i] = BackgroundStar:new(nil, x, y, size, 255, 255, 255, speed)
     end
 
-    -- enemy ships
-    spawnEnemyShips(10)
+    Moan.speak({ "MSgt Skittles", { 255, 255, 255 } },
+            {
+                "Hey kid! While you were out on that training mission, the Frittata Armada swooped in and attacked!  Most of the fleet has scattered or been destroyed... it's up to you to save what's left!",
+                "Don't forget your training! SPACEBAR to fire your cannons and the UP and DOWN buttons to dodge.  You have limited ENERGY so don't forget to let your cannons cool down and recharge sometimes.",
+                "I'll check in once I get to safe spot...  here they come!" },
+            { image = mSgtSkittlesPortrait,
+              onstart = function()
+                  Moan.UI.messageboxPos = "bottom"
+                  Moan.setSpeed(0.0000000000000000001)
+                  paused = true
+              end,
+              oncomplete = function()
+                  paused = false
+                  spawnEnemyShips(10)
+              end })
 end
 
 function love.draw()
@@ -170,18 +189,66 @@ function love.draw()
         bullet:draw(255, 0, 0)
     end
 
-    -- if paused
-    if paused and playerDead == false then
-        love.graphics.print("GAME PAUSED", 200, 300, 0, 8, 8)
-        love.graphics.print("Press 'Q' to Quit", 425, 425, 0, 3, 3)
-        love.graphics.print("Press 'Esc' to Keep Playing", 325, 475, 0, 3, 3)
-    end
+    -- Moan text boxes
+    Moan.draw()
 
 end
 
 function love.update(dt)
+    Moan.update(dt)
+
     if paused == true then
         return
+    end
+
+    if score > level2Threshold and level <= 1 then
+        Moan.speak({ "MSgt Skittles", { 255, 255, 255 } },
+                {
+                    "Hey kid! I'm still being chased but I had to pop in and warn you... the Frittata Armada has called out their elite pilots! Keep an eye out for blue sharpshooter ships!",
+                    "They are extremely agile and fire faster than the standard yellow armada fodder. Don't let them hit you too many times or your armor will fail!",
+                    "**EXPLOSION** **WARNING ALARM** Ahh I took a hit! I've got to go kid, keep up the good work!" },
+                { image = mSgtSkittlesPortrait,
+                  onstart = function()
+                      Moan.UI.messageboxPos = "bottom"
+                      paused = true
+                  end,
+                  oncomplete = function()
+                      level = 2
+                      paused = false
+                  end })
+    end
+
+    if score > level3Threshold and level <= 2 then
+        Moan.speak({ "MSgt Skittles", { 255, 255, 255 } },
+                {
+                    "Hey kid! Looks like you're making out pretty well... I've got half the armada chasing me down at this point. Don't know how much longer I'll make it...",
+                    "The Frit's have pulled out all the stops and are now deploying their bombers... they fire fast and have super strong armor. Don't be surprised if you have to hit them a few times before they go down.",
+                    "Best of luck out there... I hope we get to chat again." },
+                { image = mSgtSkittlesPortrait,
+                  onstart = function()
+                      Moan.UI.messageboxPos = "bottom"
+                      paused = true
+                  end,
+                  oncomplete = function()
+                      level = 3
+                      paused = false
+                  end })
+    end
+
+    if score > level4Threshold and level <= 3 then
+        Moan.speak({ "MSgt Skittles", { 255, 255, 255 } },
+                {
+                    "Ok... this is it kid! You've given the armada such a beating that they've called out all their spare ships and pilots!",
+                    "Get through this wave and we might be in the clear!!!" },
+                { image = mSgtSkittlesPortrait,
+                  onstart = function()
+                      Moan.UI.messageboxPos = "bottom"
+                      paused = true
+                  end,
+                  oncomplete = function()
+                      level = 4
+                      paused = false
+                  end })
     end
 
     -- handle inputs
@@ -264,13 +331,18 @@ function love.update(dt)
             print("player ship collision detected")
             playerShip.health = playerShip.health - 1
             table.remove(enemyBullets, i)
+            playSound("shiphit")
         end
     end
 
     -- spawn new ships
     timeSinceLastShipSpawn = timeSinceLastShipSpawn + dt
     if timeSinceLastShipSpawn > 3 then
-        spawnEnemyShips(5)
+        if level >= 4 then
+            spawnEnemyShips(8)
+        else
+            spawnEnemyShips(5)
+        end
         timeSinceLastShipSpawn = 0
     end
 
@@ -298,19 +370,11 @@ function love.update(dt)
 end
 
 function love.keypressed(key)
-    print("key pressed: " .. key)
+    if key == "space" or key == "enter" then
+        Moan.advanceMsg()
+    end
 
-    if key == "escape" and playerDead == false and paused == false then
-        print("pausing game")
-        paused = true
-    elseif key == "escape" and playerDead == true then
-        print("quitting game")
-        love.event.quit()
-    elseif key == "escape" and paused == true then
-        print("unpausing game")
-        paused = false
-    elseif key == "q" and paused == true then
-        print("quitting game")
+    if key == "escape" then
         love.event.quit()
     end
 end
@@ -356,11 +420,11 @@ function spawnEnemyShips(numOfShips)
         local scale
 
         local shipToSpawn = math.random(1, 8)
-        if shipToSpawn == 1 then
+        if shipToSpawn == 1 and level >= 2 then
             scale = 0.55
             local newShip = EnemyShip:new(nil, startingX, startingY, enemyBlueShipImg, scale, 1)
             table.insert(enemyShips, newShip)
-        elseif shipToSpawn == 2 then
+        elseif shipToSpawn == 2 and level >= 3 then
             scale = 1.25
             local newShip = EnemyShip:new(nil, startingX, startingY, enemyGreenShipImg, scale, 2)
             table.insert(enemyShips, newShip)
@@ -402,15 +466,22 @@ function playSound(sound)
     end
 
     if sound == "explosion" then
-        local sfx = explosionSound:clone()
-        sfx:play()
+        explosionSound:clone():play()
     elseif sound == "shot" then
-        local sfx = shotSound:clone()
-        sfx:play()
+        shotSound:clone()
     elseif sound == "gameover" then
-        local sfx = gameOverSound:clone()
-        sfx:play()
+        gameOverSound:clone():play()
+    elseif sound == "shithit" then
+        shipHitSound:clone():play()
     else
         print("unknown sound: " .. tostring(sound))
+    end
+end
+
+function playMusic()
+    if audioEnabled then
+        song:setLooping(true)
+        song:setVolume(0.7)
+        song:play()
     end
 end
