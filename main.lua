@@ -37,6 +37,9 @@ local maxHealth = 10
 function love.load()
     math.randomseed(os.time())
 
+    font = love.graphics.newFont(15)
+    love.graphics.setFont(font)
+
     -- load images
     playerShipImg = love.graphics.newImage("image/pixel_ship_red.png")
     enemyYellowShipImg = love.graphics.newImage("image/pixel_ship_yellow.png")
@@ -160,7 +163,7 @@ function love.draw()
         playerShip:draw()
         engineAnimation:drawAtPosition(50, playerShip.y)
     else
-        love.graphics.print("GAME OVER", 350, 300, 0, 8, 8)
+        love.graphics.print("GAME OVER", 275, 300, 0, 8, 8)
     end
 
     for i, bullet in ipairs(playerBullets) do
@@ -169,21 +172,18 @@ function love.draw()
 
     -- if paused
     if paused and playerDead == false then
-        love.graphics.print("GAME PAUSED", 275, 300, 0, 8, 8)
-        love.graphics.print("Press 'Q' to Quit", 475, 425, 0, 3, 3)
+        love.graphics.print("GAME PAUSED", 200, 300, 0, 8, 8)
+        love.graphics.print("Press 'Q' to Quit", 425, 425, 0, 3, 3)
     end
 
 end
 
 function love.update(dt)
-    -- handle inputs
-    handleInput(dt)
-
-    if paused then
-        handlePausedInput(dt)
+    if paused == true then
         return
     end
 
+    -- handle inputs
     handleUnpausedInput(dt)
 
     -- engine animation
@@ -296,28 +296,25 @@ function love.update(dt)
     end
 end
 
-function handleInput(dt)
-end
+function love.keypressed(key)
+    print("key pressed: " .. key)
 
-function handlePausedInput(dt)
-    if love.keyboard.isDown("escape") then
+    if key == "escape" and playerDead == false and paused == false then
+        print("pausing game")
+        paused = true
+    elseif key == "escape" and playerDead == true then
+        print("quitting game")
+        love.event.quit()
+    elseif key == "escape" and paused == true then
+        print("unpausing game")
         paused = false
-    end
-
-    if love.keyboard.isDown("q") then
+    elseif key == "q" and paused == true then
+        print("quitting game")
         love.event.quit()
     end
 end
 
 function handleUnpausedInput(dt)
-    if love.keyboard.isDown("escape") and playerDead == false then
-        paused = true
-    end
-
-    if love.keyboard.isDown("escape") and playerDead == true then
-        love.event.quit()
-    end
-
     if love.keyboard.isDown("up") then
         playerShip.y = playerShip.y - 8
         if playerShip.y < 45 then
