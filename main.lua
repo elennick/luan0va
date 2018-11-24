@@ -174,6 +174,7 @@ function love.draw()
     if paused and playerDead == false then
         love.graphics.print("GAME PAUSED", 200, 300, 0, 8, 8)
         love.graphics.print("Press 'Q' to Quit", 425, 425, 0, 3, 3)
+        love.graphics.print("Press 'Esc' to Keep Playing", 325, 475, 0, 3, 3)
     end
 
 end
