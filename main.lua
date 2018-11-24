@@ -14,6 +14,7 @@ local enemyBullets = {}
 local playerShip
 local playerBullets = {}
 local animations = {}
+local font
 
 local score = 0
 local timeSinceLastPlayerBulletFired = 0
@@ -40,10 +41,12 @@ local level4Threshold = 13000
 
 function love.load()
     math.randomseed(os.time())
+    local major, minor, revision, codename = love.getVersion()
+    print("running with LÖVE version: " .. major .. "." .. minor .. "." .. revision .. " " .. codename)
 
     -- fonts
     Moan.font = love.graphics.newFont("font/Pixel-UniCode.ttf", 32)
-    love.graphics.setNewFont("font/Pixel-UniCode.ttf", 15)
+    font = love.graphics.newFont("font/Pixel-UniCode.ttf", 32)
 
     -- load images
     playerShipImg = love.graphics.newImage("image/pixel_ship_red.png")
@@ -117,7 +120,7 @@ function love.load()
         stars[i] = BackgroundStar:new(nil, x, y, size, 255, 255, 255, speed)
     end
 
-    Moan.speak({ "MSgt Skittles", { 255, 255, 255 } },
+    Moan.speak({ "Admiral Skittles", { 255, 255, 255 } },
             {
                 "Hey kid! While you were out on that training mission, the Frittata Armada swooped in and attacked!  Most of the fleet has scattered or been destroyed... it's up to you to save what's left!",
                 "Don't forget your training! SPACEBAR to fire your cannons and the UP and DOWN buttons to dodge.  You have limited ENERGY so don't forget to let your cannons cool down and recharge sometimes.",
@@ -125,7 +128,7 @@ function love.load()
             { image = mSgtSkittlesPortrait,
               onstart = function()
                   Moan.UI.messageboxPos = "bottom"
-                  Moan.setSpeed(0.0000000000000000001)
+                  Moan.setSpeed("fast")
                   paused = true
               end,
               oncomplete = function()
@@ -135,6 +138,8 @@ function love.load()
 end
 
 function love.draw()
+    love.graphics.setFont(font)
+
     -- background big red star
     love.graphics.draw(redStarImg, 400, 0, 0, 0.2, 0.2)
 
@@ -145,6 +150,15 @@ function love.draw()
 
     -- background big blue stars
     love.graphics.draw(blueStarImg, 600, 400)
+
+    -- text displays
+    love.graphics.print("Score: " .. score, 1000, 25)
+    if showMemoryUsage then
+        love.graphics.print('Memory used (kB): ' .. collectgarbage('count'), 950, 75)
+    end
+
+    -- health and energy bars
+    drawHealthAndEnergyBars()
 
     -- enemy ships
     for i, ship in ipairs(enemyShips) do
@@ -157,15 +171,6 @@ function love.draw()
     -- animations
     for i, animation in ipairs(animations) do
         animation:draw()
-    end
-
-    -- text displays
-    love.graphics.print("Score: " .. score, 1000, 25)
-    love.graphics.print("Health: " .. playerShip.health, 200, 25)
-    love.graphics.print("Energy: " .. playerShip.energy, 200, 50)
-
-    if showMemoryUsage then
-        love.graphics.print('Memory used (kB): ' .. collectgarbage('count'), 950, 75)
     end
 
     -- draw collison hitboxes
@@ -182,16 +187,15 @@ function love.draw()
         playerShip:draw()
         engineAnimation:drawAtPosition(50, playerShip.y)
     else
-        love.graphics.print("GAME OVER", 275, 300, 0, 8, 8)
+        love.graphics.print("GAME OVER", 375, 275, 0, 5, 5)
     end
 
     for i, bullet in ipairs(playerBullets) do
         bullet:draw(255, 0, 0)
     end
 
-    -- Moan text boxes
+    --  text boxes
     Moan.draw()
-
 end
 
 function love.update(dt)
@@ -201,57 +205,7 @@ function love.update(dt)
         return
     end
 
-    if score > level2Threshold and level <= 1 then
-        Moan.speak({ "MSgt Skittles", { 255, 255, 255 } },
-                {
-                    "Hey kid! I'm still being chased but I had to pop in and warn you... the Frittata Armada has called out their elite pilots! Keep an eye out for blue sharpshooter ships!",
-                    "They are extremely agile and fire faster than the standard yellow armada fodder. Don't let them hit you too many times or your armor will fail!",
-                    "**EXPLOSION** **WARNING ALARM** Ahh I took a hit! I've got to go kid, keep up the good work!" },
-                { image = mSgtSkittlesPortrait,
-                  onstart = function()
-                      Moan.UI.messageboxPos = "bottom"
-                      paused = true
-                  end,
-                  oncomplete = function()
-                      level = 2
-                      paused = false
-                  end })
-    end
-
-    if score > level3Threshold and level <= 2 then
-        Moan.speak({ "MSgt Skittles", { 255, 255, 255 } },
-                {
-                    "Hey kid! Looks like you're making out pretty well... I've got half the armada chasing me down at this point. Don't know how much longer I'll make it...",
-                    "The Frit's have pulled out all the stops and are now deploying their bombers... they fire fast and have super strong armor. Don't be surprised if you have to hit them a few times before they go down.",
-                    "Best of luck out there... I hope we get to chat again." },
-                { image = mSgtSkittlesPortrait,
-                  onstart = function()
-                      Moan.UI.messageboxPos = "bottom"
-                      paused = true
-                  end,
-                  oncomplete = function()
-                      level = 3
-                      paused = false
-                  end })
-    end
-
-    if score > level4Threshold and level <= 3 then
-        Moan.speak({ "MSgt Skittles", { 255, 255, 255 } },
-                {
-                    "Ok... this is it kid! You've given the armada such a beating that they've called out all their spare ships and pilots!",
-                    "Get through this wave and we might be in the clear!!!" },
-                { image = mSgtSkittlesPortrait,
-                  onstart = function()
-                      Moan.UI.messageboxPos = "bottom"
-                      paused = true
-                  end,
-                  oncomplete = function()
-                      level = 4
-                      paused = false
-                  end })
-    end
-
-    -- handle inputs
+    handleMessageBoxes()
     handleUnpausedInput(dt)
 
     -- engine animation
@@ -370,7 +324,7 @@ function love.update(dt)
 end
 
 function love.keypressed(key)
-    if key == "space" or key == "enter" then
+    if key == "space" then
         Moan.advanceMsg()
     end
 
@@ -405,6 +359,76 @@ function handleUnpausedInput(dt)
                 playerShip.energy = playerShip.energy - energyPerShot
             end
         end
+    end
+end
+
+function drawHealthAndEnergyBars()
+    local healthPercentage = playerShip.health / maxHealth
+    local barLength = healthPercentage * 200
+
+    love.graphics.print("Armor", 608, 8)
+    love.graphics.setColor(255, 255, 255)
+    love.graphics.polygon("fill", 424, 38, 856, 38, 842, 52, 438, 52)
+    if playerShip.health > 0 then
+        love.graphics.setColor(255, 0, 0)
+        love.graphics.polygon("fill", 640, 40, 630 - barLength, 40, 640 - barLength, 50, 640, 50)
+        love.graphics.polygon("fill", 640, 40, 650 + barLength, 40, 640 + barLength, 50, 640, 50)
+    end
+    love.graphics.setColor(255, 255, 255)
+end
+
+function handleMessageBoxes()
+    if score > level2Threshold and level <= 1 then
+        Moan.speak({ "Admiral Skittles", { 255, 255, 255 } },
+                {
+                    "Hey kid! I'm still being chased but I had to pop in and warn you... the Frittata Armada has called out their elite pilots! Keep an eye out for blue sharpshooter ships!",
+                    "They are extremely agile and fire faster than the standard yellow armada fodder. Don't let them hit you too many times or your armor will fail!",
+                    "**EXPLOSION** **WARNING ALARM** Ahh I took a hit! I've got to go kid, keep up the good work!" },
+                { image = mSgtSkittlesPortrait,
+                  onstart = function()
+                      Moan.UI.messageboxPos = "bottom"
+                      Moan.setSpeed("fast")
+                      paused = true
+                  end,
+                  oncomplete = function()
+                      level = 2
+                      paused = false
+                  end })
+    end
+
+    if score > level3Threshold and level <= 2 then
+        Moan.speak({ "Admiral Skittles", { 255, 255, 255 } },
+                {
+                    "Hey kid! Looks like you're making out pretty well... I've got half the armada chasing me down at this point. Don't know how much longer I'll make it...",
+                    "The Frit's have pulled out all the stops and are now deploying their bombers... they fire fast and have super strong armor. Don't be surprised if you have to hit them a few times before they go down.",
+                    "Best of luck out there... I hope we get to chat again." },
+                { image = mSgtSkittlesPortrait,
+                  onstart = function()
+                      Moan.UI.messageboxPos = "bottom"
+                      Moan.setSpeed("fast")
+                      paused = true
+                  end,
+                  oncomplete = function()
+                      level = 3
+                      paused = false
+                  end })
+    end
+
+    if score > level4Threshold and level <= 3 then
+        Moan.speak({ "Admiral Skittles", { 255, 255, 255 } },
+                {
+                    "Ok... this is it kid! You've given the armada such a beating that they've called out all their spare ships and pilots!",
+                    "Get through this wave and we might be in the clear!!!" },
+                { image = mSgtSkittlesPortrait,
+                  onstart = function()
+                      Moan.UI.messageboxPos = "bottom"
+                      Moan.setSpeed("fast")
+                      paused = true
+                  end,
+                  oncomplete = function()
+                      level = 4
+                      paused = false
+                  end })
     end
 end
 
@@ -471,7 +495,7 @@ function playSound(sound)
         shotSound:clone():play()
     elseif sound == "gameover" then
         gameOverSound:clone():play()
-    elseif sound == "shithit" then
+    elseif sound == "shiphit" then
         shipHitSound:clone():play()
     else
         print("unknown sound: " .. tostring(sound))
