@@ -33,7 +33,7 @@ local numberOfBackgroundStars = 30
 local maxNumberOfEnemyShips = 20
 local energyPerShot = 8
 local maxEnergy = 200
-local maxHealth = 100
+local maxHealth = 10
 local level2Threshold = 3000
 local level3Threshold = 7000
 local level4Threshold = 13000
@@ -468,7 +468,7 @@ function playSound(sound)
     if sound == "explosion" then
         explosionSound:clone():play()
     elseif sound == "shot" then
-        shotSound:clone()
+        shotSound:clone():play()
     elseif sound == "gameover" then
         gameOverSound:clone():play()
     elseif sound == "shithit" then
