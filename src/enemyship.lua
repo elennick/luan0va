@@ -65,7 +65,7 @@ end
 function EnemyShip:update(dt, enemyBullets)
     self.timeSinceLastBullet = self.timeSinceLastBullet + dt
     if self.timeSinceLastBullet > self.firingRate then
-        local newBullet = Bullet:new(nil, self.x - 25, self.y, 6)
+        local newBullet = Bullet:new(nil, self.x - 25, self.y, 6, true)
         table.insert(enemyBullets, newBullet)
         self.timeSinceLastBullet = 0
     end

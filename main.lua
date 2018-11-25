@@ -129,6 +129,7 @@ function love.load()
             { image = mSgtSkittlesPortrait,
               onstart = function()
                   Moan.UI.messageboxPos = "bottom"
+                  Moan.UI.boxColour = { .15, .22, .35, 222 }
                   Moan.setSpeed("fast")
                   paused = true
               end,
@@ -166,7 +167,7 @@ function love.draw()
         ship:draw()
     end
     for i, bullet in ipairs(enemyBullets) do
-        bullet:draw(0, 255, 0)
+        bullet:draw(.4, 1, 0)
     end
 
     -- animations
@@ -353,7 +354,7 @@ function handleUnpausedInput(dt)
         if playerShip.energy >= energyPerShot then
             timeSinceLastPlayerBulletFired = timeSinceLastPlayerBulletFired + dt
             if timeSinceLastPlayerBulletFired > .10 then
-                local newBullet = Bullet:new(nil, playerShip.x + 25, playerShip.y, 4)
+                local newBullet = Bullet:new(nil, playerShip.x + 25, playerShip.y, 4, false)
                 table.insert(playerBullets, newBullet)
                 timeSinceLastPlayerBulletFired = 0
                 playSound("shot")
@@ -369,10 +370,10 @@ function drawHealthAndEnergyBars()
     local healthPercentage = playerShip.health / maxHealth
     local healthBarLength = healthPercentage * 200
 
-    love.graphics.setColor(255, 255, 255)
+    love.graphics.setColor(1, 1, 1)
     love.graphics.polygon("fill", 424, 38, 856, 38, 842, 52, 438, 52)
     if playerShip.health > 0 then
-        love.graphics.setColor(255, 0, 0)
+        love.graphics.setColor(1, 0, 0)
         love.graphics.polygon("fill", 640, 40, 630 - healthBarLength, 40, 640 - healthBarLength, 50, 640, 50)
         love.graphics.polygon("fill", 640, 40, 650 + healthBarLength, 40, 640 + healthBarLength, 50, 640, 50)
     end
@@ -381,7 +382,7 @@ function drawHealthAndEnergyBars()
     local energyPercentage = playerShip.energy / maxEnergy
     local energyBarLength = energyPercentage * 200
 
-    love.graphics.setColor(255, 255, 255)
+    love.graphics.setColor(1, 1, 1)
     love.graphics.polygon("fill", 424, 53, 856, 53, 842, 67, 438, 67)
     if playerShip.energy > 0 then
         love.graphics.setColor(1, .5, 0)
@@ -389,12 +390,12 @@ function drawHealthAndEnergyBars()
         love.graphics.polygon("fill", 640, 55, 650 + energyBarLength, 55, 640 + energyBarLength, 65, 640, 65)
     end
 
-    love.graphics.setColor(255, 255, 255)
+    love.graphics.setColor(1, 1, 1)
 end
 
 function handleMessageBoxes()
     if score > level2Threshold and level <= 1 then
-        Moan.speak({ "Admiral Skittles", { 255, 255, 255 } },
+        Moan.speak({ "Admiral Skittles", { 1, 1, 1 } },
                 {
                     "*** INCOMING TRANSMISSION ***",
                     "Hey kid! I'm still being chased but I had to pop in and warn you...  the Frittata Armada has called out their elite pilots!  Keep an eye out for blue sharpshooter ships!",
@@ -403,6 +404,7 @@ function handleMessageBoxes()
                 { image = mSgtSkittlesPortrait,
                   onstart = function()
                       Moan.UI.messageboxPos = "bottom"
+                      Moan.UI.boxColour = { .15, .22, .35, 222 }
                       Moan.setSpeed("fast")
                       paused = true
                   end,
@@ -413,7 +415,7 @@ function handleMessageBoxes()
     end
 
     if score > level3Threshold and level <= 2 then
-        Moan.speak({ "Admiral Skittles", { 255, 255, 255 } },
+        Moan.speak({ "Admiral Skittles", { 1, 1, 1 } },
                 {
                     "*** INCOMING TRANSMISSION ***",
                     "Hey kid! Looks like you're making out pretty well...  I've got half the armada chasing me down at this point.  Don't know how much longer I'll make it...",
@@ -422,6 +424,7 @@ function handleMessageBoxes()
                 { image = mSgtSkittlesPortrait,
                   onstart = function()
                       Moan.UI.messageboxPos = "bottom"
+                      Moan.UI.boxColour = { .15, .22, .35, 222 }
                       Moan.setSpeed("fast")
                       paused = true
                   end,
@@ -432,7 +435,7 @@ function handleMessageBoxes()
     end
 
     if score > level4Threshold and level <= 3 then
-        Moan.speak({ "Admiral Skittles", { 255, 255, 255 } },
+        Moan.speak({ "Admiral Skittles", { 1, 1, 1 } },
                 {
                     "*** INCOMING TRANSMISSION ***",
                     "Ok...  this is it kid!  You've given the armada such a beating that they've called out all their spare ships and pilots!",
@@ -440,6 +443,7 @@ function handleMessageBoxes()
                 { image = mSgtSkittlesPortrait,
                   onstart = function()
                       Moan.UI.messageboxPos = "bottom"
+                      Moan.UI.boxColour = { .15, .22, .35, 222 }
                       Moan.setSpeed("fast")
                       paused = true
                   end,

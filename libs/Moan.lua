@@ -360,7 +360,6 @@ function Moan.draw()
     local fontColour = { 255, 255, 255, 255 }
     local boxColour = { .15, .22, .35, 222 }
 
-
     love.graphics.setFont(Moan.font)
 
     -- Message title
