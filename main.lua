@@ -499,6 +499,9 @@ function handleMessageBoxes()
                       paused = false
                       shipSpawningEnabled = false
                       destroyAllShips()
+                      destroyAllShips()
+                      destroyAllShips()
+                      destroyAllShips()
                       spawnBossShip()
                   end })
     end
