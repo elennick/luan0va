@@ -8,7 +8,7 @@ EnemyShip = {
 function EnemyShip:new (o, x, y, image, scale, type)
     if type == 4 then
         -- type 4 = boss ship
-        firingRate = 3
+        firingRate = 2
         movementMultiplier = 0
         directionChangeInterval = 500
         scoreValue = 1000
