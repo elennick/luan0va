@@ -44,4 +44,8 @@ function PlayerShip:getTopLeftY()
     return self.y - self:getScaledHeight() / 2;
 end
 
+function PlayerShip:getHitbox()
+    return self:getTopLeftX(), self:getTopLeftY(), self:getScaledWidth(), self:getScaledHeight()
+end
+
 return PlayerShip

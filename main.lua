@@ -23,6 +23,7 @@ local timeSinceLastEnergyGain = 0
 local paused = false
 local playerDead = false
 local level = 1
+local shipSpawningEnabled = true
 
 -- debug
 local audioEnabled = true
@@ -35,9 +36,14 @@ local maxNumberOfEnemyShips = 20
 local energyPerShot = 8
 local maxEnergy = 200
 local maxHealth = 10
-local level2Threshold = 3000
-local level3Threshold = 7000
-local level4Threshold = 13000
+--local level2Threshold = 3000
+--local level3Threshold = 7000
+--local level4Threshold = 13000
+--local level5Threshold = 20000
+local level2Threshold = 100
+local level3Threshold = 200
+local level4Threshold = 300
+local level5Threshold = 400
 
 function love.load()
     math.randomseed(os.time())
@@ -53,12 +59,14 @@ function love.load()
     enemyYellowShipImg = love.graphics.newImage("image/pixel_ship_yellow.png")
     enemyBlueShipImg = love.graphics.newImage("image/pixel_ship_blue.png")
     enemyGreenShipImg = love.graphics.newImage("image/pixel_ship_green.png")
+    enemyRedBossShipImg = love.graphics.newImage("image/pixel_ship_red_small_2.png")
 
     blueStarImg = love.graphics.newImage("image/stars/star_blue_giant01.png")
     redStarImg = love.graphics.newImage("image/stars/star_red_giant01.png")
     asteroidImg = love.graphics.newImage("image/pixel_asteroid.png")
 
     mSgtSkittlesPortrait = love.graphics.newImage("image/portrait/P01_A_01.png")
+    raAsiagoPortrait = love.graphics.newImage("image/portrait/P01_B_04.png")
 
     -- enemy ship explosion animation
     explosionSpriteSheet = love.graphics.newImage("image/explosions/explosion31.png")
@@ -153,12 +161,6 @@ function love.draw()
     -- background big blue stars
     love.graphics.draw(blueStarImg, 600, 400)
 
-    -- text displays
-    love.graphics.print("Score: " .. score, 1000, 25)
-    if showMemoryUsage then
-        love.graphics.print('Memory used (kB): ' .. collectgarbage('count'), 950, 75)
-    end
-
     -- health and energy bars
     drawHealthAndEnergyBars()
 
@@ -178,10 +180,15 @@ function love.draw()
     -- draw collison hitboxes
     if drawCollisionHitboxes then
         for i, ship in ipairs(enemyShips) do
-            love.graphics.rectangle("line",
-                    ship:getTopLeftX(), ship:getTopLeftY(),
-                    ship:getScaledWidth(), ship:getScaledHeight())
+            local x, y, w, h = ship:getHitbox()
+            love.graphics.rectangle("line", x, y, w, h)
         end
+    end
+
+    -- text displays
+    love.graphics.print("Score: " .. score, 1000, 25)
+    if showMemoryUsage then
+        love.graphics.print('Memory used (kB): ' .. collectgarbage('count'), 950, 75)
     end
 
     -- player ship
@@ -265,17 +272,7 @@ function love.update(dt)
                 table.remove(playerBullets, l)
 
                 if enemyShips[i].health <= 0 then
-                    score = score + enemyShips[i]:getScoreValue()
-                    table.insert(animations,
-                            AnimationWrapper:new(o,
-                                    explosionSpriteSheet,
-                                    explosionAnimation,
-                                    enemyShips[i].x,
-                                    enemyShips[i].y,
-                                    .64,
-                                    enemyShips[i].scale))
-                    table.remove(enemyShips, i)
-                    playSound("explosion")
+                    destroyEnemyShip(enemyShips[i], i)
                 end
             end
         end
@@ -364,9 +361,28 @@ function handleUnpausedInput(dt)
     end
 end
 
+function destroyEnemyShip(ship, i)
+    score = score + ship:getScoreValue()
+    table.insert(animations,
+            AnimationWrapper:new(o,
+                    explosionSpriteSheet,
+                    explosionAnimation,
+                    ship.x,
+                    ship.y,
+                    .64,
+                    ship.scale))
+    table.remove(enemyShips, i)
+    playSound("explosion")
+end
+
+function destroyAllShips()
+    for i, ship in ipairs(enemyShips) do
+        destroyEnemyShip(ship, i)
+    end
+end
+
 function drawHealthAndEnergyBars()
     -- armor
-    --love.graphics.print("Armor", 608, 8)
     local healthPercentage = playerShip.health / maxHealth
     local healthBarLength = healthPercentage * 200
 
@@ -452,9 +468,48 @@ function handleMessageBoxes()
                       paused = false
                   end })
     end
+
+    if score > level5Threshold and level <= 4 then
+        Moan.speak({ "Admiral Skittles", { 1, 1, 1 } },
+                {
+                    "*** INCOMING TRANSMISSION ***",
+                    "You did it! You've depleted their forces to the point that Rear Admiral Asiago has boarded their flagship fighter and is on his way!",
+                    "Don't let up now, if you can defeat the admiral then we will have saved our people from certain invasion..." },
+                { image = mSgtSkittlesPortrait,
+                  onstart = function()
+                      Moan.UI.messageboxPos = "bottom"
+                      Moan.UI.boxColour = { .15, .22, .35, 222 }
+                      Moan.setSpeed("fast")
+                      paused = true
+                  end })
+        Moan.speak({ "Rear Admiral Asiago", { 1, 1, 1 } },
+                {
+                    "*** INCOMING TRANSMISSION ***",
+                    "So you're the one who has caused us so much trouble.  I thought your ship would be cool.  Do you even have nitrous on that thing?",
+                    "No matter.  Sit still while I pulverize you and then invade your stupid planet..." },
+                { image = raAsiagoPortrait,
+                  onstart = function()
+                      Moan.UI.messageboxPos = "top"
+                      Moan.UI.boxColour = { .15, .22, .35, 222 }
+                      Moan.setSpeed("fast")
+                      paused = true
+                  end,
+                  oncomplete = function()
+                      level = 5
+                      paused = false
+                      shipSpawningEnabled = false
+                      destroyAllShips()
+                      spawnBossShip()
+                  end })
+    end
 end
 
 function spawnEnemyShips(numOfShips)
+    if shipSpawningEnabled == false then
+        print("ship spawning disabled")
+        return
+    end
+
     for i = 0, numOfShips, 1 do
         if table.getn(enemyShips) >= maxNumberOfEnemyShips then
             print("Can't spawn more ships, already at max " .. table.getn(enemyShips))
@@ -491,10 +546,16 @@ function spawnEnemyShips(numOfShips)
     end
 end
 
+function spawnBossShip()
+    local newShip = EnemyShip:new(nil, 1000, 360, enemyRedBossShipImg, 14, 4)
+    table.insert(enemyShips, newShip)
+end
+
 function checkCollisionOfShipAndBullet(ship, bullet)
+    local x1, y1, w1, h1 = ship:getHitbox()
     return checkCollision(
-            ship:getTopLeftX(), ship:getTopLeftY(),
-            ship:getScaledWidth(), ship:getScaledHeight(),
+            x1, y1,
+            w1, h1,
             bullet.x, bullet.y,
             5, 5) --todo make this variable based on the bullet size, not hard coded to a width of 5
 end

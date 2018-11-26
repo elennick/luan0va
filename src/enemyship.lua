@@ -6,7 +6,14 @@ EnemyShip = {
 }
 
 function EnemyShip:new (o, x, y, image, scale, type)
-    if type == 1 then
+    if type == 4 then
+        -- type 4 = boss ship
+        firingRate = 3
+        movementMultiplier = 0
+        directionChangeInterval = 500
+        scoreValue = 1000
+        health = 200
+    elseif type == 1 then
         -- type 1 = elite, fast moving blue ships
         firingRate = 1
         movementMultiplier = 7
@@ -17,7 +24,7 @@ function EnemyShip:new (o, x, y, image, scale, type)
         -- type 2 = elite, large, stationary fast firing ships
         firingRate = 3
         movementMultiplier = 0
-        directionChangeInterval = 2.5
+        directionChangeInterval = 500
         scoreValue = 100
         health = 3
     else
@@ -38,6 +45,7 @@ function EnemyShip:new (o, x, y, image, scale, type)
         y = y or 0,
         image = image,
         scale = scale or 0.7,
+        type = type or 3,
         elite = elite or false,
         timeSinceLastBullet = timeSinceLastBullet or 0,
         timeSinceLastDirChange = timeSinceLastDirChange or 0,
@@ -65,8 +73,14 @@ end
 function EnemyShip:update(dt, enemyBullets)
     self.timeSinceLastBullet = self.timeSinceLastBullet + dt
     if self.timeSinceLastBullet > self.firingRate then
-        local newBullet = Bullet:new(nil, self.x - 25, self.y, 6, true)
-        table.insert(enemyBullets, newBullet)
+        if self.type == 4 then
+            -- boss ship
+            self:insertBossBullets(enemyBullets)
+        else
+            -- non boss ships
+            local newBullet = Bullet:new(nil, self.x - 25, self.y, 6, true)
+            table.insert(enemyBullets, newBullet)
+        end
         self.timeSinceLastBullet = 0
     end
 
@@ -107,6 +121,66 @@ end
 
 function EnemyShip:getScoreValue()
     return self.scoreValue
+end
+
+function EnemyShip:getHitbox()
+    if self.type == 4 then
+        return self:getTopLeftX() + (self:getScaledWidth() / 3),
+        self:getTopLeftY(),
+        self:getScaledWidth() / 2,
+        self:getScaledHeight()
+    else
+        return self:getTopLeftX(), self:getTopLeftY(), self:getScaledWidth(), self:getScaledHeight()
+    end
+end
+
+function EnemyShip:insertBossBullets(enemyBullets)
+    local turrentDisabled = math.random(1, 5)
+
+    if turrentDisabled ~= 1 then
+        local newBullet1 = Bullet:new(nil, self.x + 50, self.y - 330, 6, true)
+        local newBullet2 = Bullet:new(nil, self.x + 50, self.y - 280, 6, true)
+        local newBullet3 = Bullet:new(nil, self.x + 50, self.y - 230, 6, true)
+        table.insert(enemyBullets, newBullet1)
+        table.insert(enemyBullets, newBullet2)
+        table.insert(enemyBullets, newBullet3)
+    end
+
+    if turrentDisabled ~= 2 then
+        local newBullet4 = Bullet:new(nil, self.x - 75, self.y - 190, 6, true)
+        local newBullet5 = Bullet:new(nil, self.x - 75, self.y - 140, 6, true)
+        local newBullet6 = Bullet:new(nil, self.x - 75, self.y - 90, 6, true)
+        table.insert(enemyBullets, newBullet4)
+        table.insert(enemyBullets, newBullet5)
+        table.insert(enemyBullets, newBullet6)
+    end
+
+    if turrentDisabled ~= 3 then
+        local newBullet7 = Bullet:new(nil, self.x - 225, self.y - 50, 6, true)
+        local newBullet8 = Bullet:new(nil, self.x - 225, self.y + 50, 6, true)
+        local newBullet9 = Bullet:new(nil, self.x - 225, self.y, 6, true)
+        table.insert(enemyBullets, newBullet7)
+        table.insert(enemyBullets, newBullet8)
+        table.insert(enemyBullets, newBullet9)
+    end
+
+    if turrentDisabled ~= 4 then
+        local newBullet10 = Bullet:new(nil, self.x - 75, self.y + 90, 6, true)
+        local newBullet11 = Bullet:new(nil, self.x - 75, self.y + 140, 6, true)
+        local newBullet12 = Bullet:new(nil, self.x - 75, self.y + 190, 6, true)
+        table.insert(enemyBullets, newBullet10)
+        table.insert(enemyBullets, newBullet11)
+        table.insert(enemyBullets, newBullet12)
+    end
+
+    if turrentDisabled ~= 5 then
+        local newBullet13 = Bullet:new(nil, self.x + 50, self.y + 230, 6, true)
+        local newBullet14 = Bullet:new(nil, self.x + 50, self.y + 280, 6, true)
+        local newBullet15 = Bullet:new(nil, self.x + 50, self.y + 330, 6, true)
+        table.insert(enemyBullets, newBullet13)
+        table.insert(enemyBullets, newBullet14)
+        table.insert(enemyBullets, newBullet15)
+    end
 end
 
 return EnemyShip
