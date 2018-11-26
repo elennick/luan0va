@@ -36,14 +36,10 @@ local maxNumberOfEnemyShips = 20
 local energyPerShot = 8
 local maxEnergy = 200
 local maxHealth = 10
---local level2Threshold = 3000
---local level3Threshold = 7000
---local level4Threshold = 13000
---local level5Threshold = 20000
 local level2Threshold = 100
 local level3Threshold = 200
-local level4Threshold = 300
-local level5Threshold = 400
+local level4Threshold = 500
+local level5Threshold = 1000
 
 function love.load()
     math.randomseed(os.time())
@@ -186,7 +182,7 @@ function love.draw()
     end
 
     -- text displays
-    love.graphics.print("Score: " .. score, 1000, 25)
+    love.graphics.print("EXP: " .. score, 1000, 25)
     if showMemoryUsage then
         love.graphics.print('Memory used (kB): ' .. collectgarbage('count'), 950, 75)
     end
@@ -503,6 +499,55 @@ function handleMessageBoxes()
                       destroyAllShips()
                       destroyAllShips()
                       spawnBossShip()
+                  end })
+    end
+
+    if level == 5 and enemyShips[1].health <= 100 then
+        Moan.speak({ "Rear Admiral Asiago", { 1, 1, 1 } },
+                {
+                    "*** INCOMING TRANSMISSION ***",
+                    "You have become a nuisance. No matter... from this point forward you will feel the power of this flagship unrestrained!" },
+                { image = raAsiagoPortrait,
+                  onstart = function()
+                      Moan.UI.messageboxPos = "top"
+                      Moan.UI.boxColour = { .15, .22, .35, 222 }
+                      Moan.setSpeed("fast")
+                      paused = true
+                  end,
+                  oncomplete = function()
+                      level = 6
+                      paused = false
+                      enemyShips[1].firingRate = 1.25
+                  end })
+    end
+
+    if level == 6 and enemyShips[1].health <= 1 then
+        Moan.speak({ "Rear Admiral Asiago", { 1, 1, 1 } },
+                {
+                    "*** INCOMING TRANSMISSION ***",
+                    "NOOO! WHAT HAVE YOU DONE!!!" },
+                { image = raAsiagoPortrait,
+                  onstart = function()
+                      Moan.UI.messageboxPos = "top"
+                      Moan.UI.boxColour = { .15, .22, .35, 222 }
+                      Moan.setSpeed("fast")
+                      paused = true
+                  end })
+        Moan.speak({ "Admiral Skittles", { 1, 1, 1 } },
+                {
+                    "*** INCOMING TRANSMISSION ***",
+                    "We did it kid!!! Nice shootin!!!!!!!!!!!!!",
+                    "Fly on back to fleet, you'll surely get a medal for this!"},
+                { image = mSgtSkittlesPortrait,
+                  onstart = function()
+                      Moan.UI.messageboxPos = "bottom"
+                      Moan.UI.boxColour = { .15, .22, .35, 222 }
+                      Moan.setSpeed("fast")
+                      paused = true
+                  end,
+                  oncomplete = function()
+                      level = 7
+                      paused = false
                   end })
     end
 end
