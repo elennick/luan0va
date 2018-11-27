@@ -20,6 +20,7 @@ local score = 0
 local timeSinceLastPlayerBulletFired = 0
 local timeSinceLastShipSpawn = 0
 local timeSinceLastEnergyGain = 0
+local timeSinceLastPlayerShipImpact = 1000
 local paused = false
 local playerDead = false
 local level = 1
@@ -33,13 +34,13 @@ local showMemoryUsage = false
 -- config
 local numberOfBackgroundStars = 30
 local maxNumberOfEnemyShips = 20
-local energyPerShot = 8
+local energyPerShot = 7
 local maxEnergy = 200
 local maxHealth = 10
-local level2Threshold = 100
-local level3Threshold = 200
-local level4Threshold = 500
-local level5Threshold = 1000
+local level2Threshold = 1000
+local level3Threshold = 2000
+local level4Threshold = 3000
+local level5Threshold = 4000
 
 function love.load()
     math.randomseed(os.time())
@@ -56,10 +57,10 @@ function love.load()
     enemyBlueShipImg = love.graphics.newImage("image/pixel_ship_blue.png")
     enemyGreenShipImg = love.graphics.newImage("image/pixel_ship_green.png")
     enemyRedBossShipImg = love.graphics.newImage("image/pixel_ship_red_small_2.png")
+    playerShipImpactImg = love.graphics.newImage("image/impact.png")
 
     blueStarImg = love.graphics.newImage("image/stars/star_blue_giant01.png")
     redStarImg = love.graphics.newImage("image/stars/star_red_giant01.png")
-    asteroidImg = love.graphics.newImage("image/pixel_asteroid.png")
 
     mSgtSkittlesPortrait = love.graphics.newImage("image/portrait/P01_A_01.png")
     raAsiagoPortrait = love.graphics.newImage("image/portrait/P01_B_04.png")
@@ -83,15 +84,15 @@ function love.load()
     playerShip = PlayerShip:new(nil, 115, 200, playerShipImg, maxEnergy, maxHealth)
 
     -- engine animation
-    engineFlame_frame1Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame4-1.png")
-    engineFlame_frame2Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame4-2.png")
-    engineFlame_frame3Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame4-3.png")
-    engineFlame_frame4Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame6-1.png")
-    engineFlame_frame5Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame6-2.png")
-    engineFlame_frame6Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame6-3.png")
-    engineFlame_frame7Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame7-1.png")
-    engineFlame_frame8Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame7-2.png")
-    engineFlame_frame9Img = love.graphics.newImage("image/heavy_turret_prototype.fx.second.flame/flame7-3.png")
+    engineFlame_frame1Img = love.graphics.newImage("image/engineflame/flame4-1.png")
+    engineFlame_frame2Img = love.graphics.newImage("image/engineflame/flame4-2.png")
+    engineFlame_frame3Img = love.graphics.newImage("image/engineflame/flame4-3.png")
+    engineFlame_frame4Img = love.graphics.newImage("image/engineflame/flame6-1.png")
+    engineFlame_frame5Img = love.graphics.newImage("image/engineflame/flame6-2.png")
+    engineFlame_frame6Img = love.graphics.newImage("image/engineflame/flame6-3.png")
+    engineFlame_frame7Img = love.graphics.newImage("image/engineflame/flame7-1.png")
+    engineFlame_frame8Img = love.graphics.newImage("image/engineflame/flame7-2.png")
+    engineFlame_frame9Img = love.graphics.newImage("image/engineflame/flame7-3.png")
     engineFlame_frames = { engineFlame_frame1Img, engineFlame_frame2Img, engineFlame_frame3Img,
                            engineFlame_frame4Img, engineFlame_frame5Img, engineFlame_frame6Img,
                            engineFlame_frame7Img, engineFlame_frame8Img, engineFlame_frame9Img }
@@ -191,6 +192,14 @@ function love.draw()
     if playerDead == false then
         playerShip:draw()
         engineAnimation:drawAtPosition(50, playerShip.y)
+        if timeSinceLastPlayerShipImpact < .2 then
+            love.graphics.draw(playerShipImpactImg,
+                    playerShip:getTopLeftX() + 85,
+                    playerShip:getTopLeftY() + 55,
+                    math.rad(180),
+                    1,
+                    1)
+        end
     else
         love.graphics.print("GAME OVER", 375, 275, 0, 5, 5)
     end
@@ -263,7 +272,6 @@ function love.update(dt)
         for l, bullet in ipairs(playerBullets) do
             local collisionDectected = checkCollisionOfShipAndBullet(ship, bullet)
             if collisionDectected then
-                print("enemy ship collision detected")
                 enemyShips[i].health = enemyShips[i].health - 1;
                 table.remove(playerBullets, l)
 
@@ -274,6 +282,7 @@ function love.update(dt)
         end
     end
 
+    timeSinceLastPlayerShipImpact = timeSinceLastPlayerShipImpact + dt
     for i, bullet in ipairs(enemyBullets) do
         local collisionDectected = checkCollisionOfShipAndBullet(playerShip, bullet)
         if collisionDectected then
@@ -281,6 +290,7 @@ function love.update(dt)
             playerShip.health = playerShip.health - 1
             table.remove(enemyBullets, i)
             playSound("shiphit")
+            timeSinceLastPlayerShipImpact = 0
         end
     end
 
@@ -537,7 +547,7 @@ function handleMessageBoxes()
                 {
                     "*** INCOMING TRANSMISSION ***",
                     "We did it kid!!! Nice shootin!!!!!!!!!!!!!",
-                    "Fly on back to fleet, you'll surely get a medal for this!"},
+                    "Fly on back to fleet, you'll surely get a medal for this!" },
                 { image = mSgtSkittlesPortrait,
                   onstart = function()
                       Moan.UI.messageboxPos = "bottom"
