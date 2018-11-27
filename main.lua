@@ -37,10 +37,10 @@ local maxNumberOfEnemyShips = 20
 local energyPerShot = 7
 local maxEnergy = 200
 local maxHealth = 10
-local level2Threshold = 1000
-local level3Threshold = 2000
-local level4Threshold = 3000
-local level5Threshold = 4000
+local level2Threshold = 3000
+local level3Threshold = 7000
+local level4Threshold = 14000
+local level5Threshold = 22000
 
 function love.load()
     math.randomseed(os.time())
@@ -208,7 +208,12 @@ function love.draw()
         bullet:draw(255, 0, 0)
     end
 
-    --  text boxes
+    -- if the boss ship has been defeated
+    if level == 7 then
+        love.graphics.print("YOU WIN!!", 400, 275, 0, 5, 5)
+    end
+
+    -- text boxes
     Moan.draw()
 end
 
@@ -512,7 +517,7 @@ function handleMessageBoxes()
                   end })
     end
 
-    if level == 5 and enemyShips[1].health <= 100 then
+    if level == 5 and enemyShips[1].health <= 150 then
         Moan.speak({ "Rear Admiral Asiago", { 1, 1, 1 } },
                 {
                     "*** INCOMING TRANSMISSION ***",
@@ -557,6 +562,7 @@ function handleMessageBoxes()
                   end,
                   oncomplete = function()
                       level = 7
+                      playerShip.health = 100
                       paused = false
                   end })
     end
