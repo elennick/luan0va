@@ -25,6 +25,7 @@ local paused = false
 local playerDead = false
 local level = 1
 local shipSpawningEnabled = true
+local infiniteEnergy = false
 
 -- debug
 local audioEnabled = true
@@ -37,10 +38,10 @@ local maxNumberOfEnemyShips = 20
 local energyPerShot = 7
 local maxEnergy = 200
 local maxHealth = 10
-local level2Threshold = 3000
-local level3Threshold = 7000
-local level4Threshold = 14000
-local level5Threshold = 22000
+local level2Threshold = 30
+local level3Threshold = 70
+local level4Threshold = 140
+local level5Threshold = 220
 
 function love.load()
     math.randomseed(os.time())
@@ -62,8 +63,10 @@ function love.load()
     blueStarImg = love.graphics.newImage("image/stars/star_blue_giant01.png")
     redStarImg = love.graphics.newImage("image/stars/star_red_giant01.png")
 
-    mSgtSkittlesPortrait = love.graphics.newImage("image/portrait/P01_A_01.png")
-    raAsiagoPortrait = love.graphics.newImage("image/portrait/P01_B_04.png")
+    goodGuyPortrait = love.graphics.newImage("image/portrait/P01_A_01.png")
+    goodGuyName = "Sgt Gaston"
+    badGuyPortrait = love.graphics.newImage("image/portrait/P01_B_04.png")
+    badGuyName = "Rear Admiral Jax"
 
     -- enemy ship explosion animation
     explosionSpriteSheet = love.graphics.newImage("image/explosions/explosion31.png")
@@ -122,20 +125,22 @@ function love.load()
         x = math.random(0, 1280)
         y = math.random(0, 720)
         speed = math.random(2, 8)
-        stars[i] = BackgroundStar:new(nil, x, y, size, 255, 255, 255, speed)
+        stars[i] = BackgroundStar:new(nil, x, y, size, 1, 1, 1, speed)
     end
 
-    Moan.speak({ "Admiral Skittles", { 255, 255, 255 } },
+    Moan.UI.boxColour = { .15, .22, .35, 222 }
+    Moan.setSpeed("fast")
+
+    Moan.speak({ goodGuyName, { 1, 1, 1 } },
             {
                 "*** INCOMING TRANSMISSION ***",
-                "Hey kid! While you were out on that training mission, the Frittata Armada swooped in and attacked!  Most of the fleet has scattered or been destroyed...  it's up to you to save what's left!",
+                "Hey kid! While you were out on that training mission, the Apollo Armada swooped in and attacked!  Most of the fleet has scattered or been destroyed...  it's up to you to try and salvage what's left!",
                 "Don't forget your training! SPACEBAR to fire your cannons and the UP and DOWN buttons to dodge.  You have limited ENERGY so don't forget to let your cannons cool down and recharge sometimes.",
-                "I'll check in once I get to safe spot...  here they come!" },
-            { image = mSgtSkittlesPortrait,
+                "If things get out of hand you can press ESCAPE to eject...  but once you do that there is no turning back so make sure you really mean it!",
+                "I'll check in once I get to safe spot...  here they come! Give them hell!" },
+            { image = goodGuyPortrait,
               onstart = function()
                   Moan.UI.messageboxPos = "bottom"
-                  Moan.UI.boxColour = { .15, .22, .35, 222 }
-                  Moan.setSpeed("fast")
                   paused = true
               end,
               oncomplete = function()
@@ -183,7 +188,8 @@ function love.draw()
     end
 
     -- text displays
-    love.graphics.print("EXP: " .. score, 1000, 25)
+    love.graphics.print("EXP: " .. score, 1050, 25)
+    love.graphics.print("Level: " .. level, 925, 25)
     if showMemoryUsage then
         love.graphics.print('Memory used (kB): ' .. collectgarbage('count'), 950, 75)
     end
@@ -205,7 +211,7 @@ function love.draw()
     end
 
     for i, bullet in ipairs(playerBullets) do
-        bullet:draw(255, 0, 0)
+        bullet:draw(1, 0, 0)
     end
 
     -- if the boss ship has been defeated
@@ -366,7 +372,9 @@ function handleUnpausedInput(dt)
                 table.insert(playerBullets, newBullet)
                 timeSinceLastPlayerBulletFired = 0
                 playSound("shot")
-                playerShip.energy = playerShip.energy - energyPerShot
+                if not infiniteEnergy then
+                    playerShip.energy = playerShip.energy - energyPerShot
+                end
             end
         end
     end
@@ -374,13 +382,20 @@ end
 
 function destroyEnemyShip(ship, i)
     score = score + ship:getScoreValue()
+    local expiresAfter = .64
+
+    -- if boss ship, make the explosion go off five times instead of just once
+    if ship.type == 4 then
+        expiresAfter = expiresAfter * 5
+    end
+
     table.insert(animations,
             AnimationWrapper:new(o,
                     explosionSpriteSheet,
                     explosionAnimation,
                     ship.x,
                     ship.y,
-                    .64,
+                    expiresAfter,
                     ship.scale))
     table.remove(enemyShips, i)
     playSound("explosion")
@@ -422,17 +437,15 @@ end
 
 function handleMessageBoxes()
     if score > level2Threshold and level <= 1 then
-        Moan.speak({ "Admiral Skittles", { 1, 1, 1 } },
+        Moan.speak({ goodGuyName, { 1, 1, 1 } },
                 {
                     "*** INCOMING TRANSMISSION ***",
-                    "Hey kid! I'm still being chased but I had to pop in and warn you...  the Frittata Armada has called out their elite pilots!  Keep an eye out for blue sharpshooter ships!",
+                    "Hey kid! I'm still being chased but I had to pop in and warn you...  the Apollo Armada has called out their elite pilots!  Keep an eye out for blue sharpshooter ships!",
                     "They are extremely agile and fire faster than the standard yellow armada fodder.  Don't let them hit you too many times or your armor will fail!",
-                    "**EXPLOSION**  **WARNING ALARM**  Ahhhh I took a hit!  I've got to go kid, keep up the good work!" },
-                { image = mSgtSkittlesPortrait,
+                    "**EXPLOSION**  **WARNING ALARM**  Damn!  I took a hit!  I've got to go kid, keep up the good work!" },
+                { image = goodGuyPortrait,
                   onstart = function()
                       Moan.UI.messageboxPos = "bottom"
-                      Moan.UI.boxColour = { .15, .22, .35, 222 }
-                      Moan.setSpeed("fast")
                       paused = true
                   end,
                   oncomplete = function()
@@ -442,17 +455,15 @@ function handleMessageBoxes()
     end
 
     if score > level3Threshold and level <= 2 then
-        Moan.speak({ "Admiral Skittles", { 1, 1, 1 } },
+        Moan.speak({ goodGuyName, { 1, 1, 1 } },
                 {
                     "*** INCOMING TRANSMISSION ***",
-                    "Hey kid! Looks like you're making out pretty well...  I've got half the armada chasing me down at this point.  Don't know how much longer I'll make it...",
-                    "The Frit's have pulled out all the stops and are now deploying their bombers...  they fire fast and have super strong armor.  Don't be surprised if you have to hit them a few times before they go down.",
+                    "Looks like you're making out pretty well...  I've got half the armada chasing me down at this point.  Don't know how much longer I'll make it...",
+                    "The Apollo's have pulled out all the stops and are now deploying their green bombers...  they fire fast and have super strong armor.  Don't be surprised if you have to hit them a few times before they go down.",
                     "Best of luck out there...  I hope we get to chat again." },
-                { image = mSgtSkittlesPortrait,
+                { image = goodGuyPortrait,
                   onstart = function()
                       Moan.UI.messageboxPos = "bottom"
-                      Moan.UI.boxColour = { .15, .22, .35, 222 }
-                      Moan.setSpeed("fast")
                       paused = true
                   end,
                   oncomplete = function()
@@ -462,16 +473,14 @@ function handleMessageBoxes()
     end
 
     if score > level4Threshold and level <= 3 then
-        Moan.speak({ "Admiral Skittles", { 1, 1, 1 } },
+        Moan.speak({ goodGuyName, { 1, 1, 1 } },
                 {
                     "*** INCOMING TRANSMISSION ***",
-                    "Ok...  this is it kid!  You've given the armada such a beating that they've called out all their spare ships and pilots!",
-                    "Get through this wave and we might be in the clear!!!" },
-                { image = mSgtSkittlesPortrait,
+                    "Ok...  this is it!  You've given the armada such a beating that they've called out all their spare ships and pilots!",
+                    "Your reflexes and dodging skills are about to be tested to the max.  Get through this wave and we might be in the clear!!!" },
+                { image = goodGuyPortrait,
                   onstart = function()
                       Moan.UI.messageboxPos = "bottom"
-                      Moan.UI.boxColour = { .15, .22, .35, 222 }
-                      Moan.setSpeed("fast")
                       paused = true
                   end,
                   oncomplete = function()
@@ -481,34 +490,34 @@ function handleMessageBoxes()
     end
 
     if score > level5Threshold and level <= 4 then
-        Moan.speak({ "Admiral Skittles", { 1, 1, 1 } },
+        Moan.speak({ goodGuyName, { 1, 1, 1 } },
                 {
                     "*** INCOMING TRANSMISSION ***",
-                    "You did it! You've depleted their forces to the point that Rear Admiral Asiago has boarded their flagship fighter and is on his way!",
+                    "You did it! You've depleted their forces to the point that Rear Admiral Jax has boarded their flagship and is on his way!",
+                    "Now is the time to overload your ships reactor, it will give you more energy. For this fight you won't have to worry about your cannons overloading.",
                     "Don't let up now, if you can defeat the admiral then we will have saved our people from certain invasion..." },
-                { image = mSgtSkittlesPortrait,
+                { image = goodGuyPortrait,
                   onstart = function()
                       Moan.UI.messageboxPos = "bottom"
-                      Moan.UI.boxColour = { .15, .22, .35, 222 }
-                      Moan.setSpeed("fast")
+                      infiniteEnergy = true
                       paused = true
                   end })
-        Moan.speak({ "Rear Admiral Asiago", { 1, 1, 1 } },
+        Moan.speak({ badGuyName, { 1, 1, 1 } },
                 {
                     "*** INCOMING TRANSMISSION ***",
-                    "So you're the one who has caused us so much trouble.  I thought your ship would be cool.  Do you even have nitrous on that thing?",
+                    "So you're the one who has caused us so much trouble.  I thought your ship would be cool.  Do you even have nitrous on that thing?  Where are the missiles?",
                     "No matter.  Sit still while I pulverize you and then invade your stupid planet..." },
-                { image = raAsiagoPortrait,
+                { image = badGuyPortrait,
                   onstart = function()
                       Moan.UI.messageboxPos = "top"
-                      Moan.UI.boxColour = { .15, .22, .35, 222 }
-                      Moan.setSpeed("fast")
                       paused = true
                   end,
                   oncomplete = function()
                       level = 5
                       paused = false
                       shipSpawningEnabled = false
+                      destroyAllShips() -- todo fix this
+                      destroyAllShips()
                       destroyAllShips()
                       destroyAllShips()
                       destroyAllShips()
@@ -517,16 +526,14 @@ function handleMessageBoxes()
                   end })
     end
 
-    if level == 5 and enemyShips[1].health <= 150 then
-        Moan.speak({ "Rear Admiral Asiago", { 1, 1, 1 } },
+    if level == 5 and enemyShips[1].health <= 250 then
+        Moan.speak({ badGuyName, { 1, 1, 1 } },
                 {
                     "*** INCOMING TRANSMISSION ***",
                     "You have become a nuisance. No matter... from this point forward you will feel the power of this flagship unrestrained!" },
-                { image = raAsiagoPortrait,
+                { image = badGuyPortrait,
                   onstart = function()
                       Moan.UI.messageboxPos = "top"
-                      Moan.UI.boxColour = { .15, .22, .35, 222 }
-                      Moan.setSpeed("fast")
                       paused = true
                   end,
                   oncomplete = function()
@@ -537,32 +544,28 @@ function handleMessageBoxes()
     end
 
     if level == 6 and enemyShips[1].health <= 1 then
-        Moan.speak({ "Rear Admiral Asiago", { 1, 1, 1 } },
+        Moan.speak({ badGuyName, { 1, 1, 1 } },
                 {
                     "*** INCOMING TRANSMISSION ***",
                     "NOOO! WHAT HAVE YOU DONE!!!" },
-                { image = raAsiagoPortrait,
+                { image = badGuyPortrait,
                   onstart = function()
                       Moan.UI.messageboxPos = "top"
-                      Moan.UI.boxColour = { .15, .22, .35, 222 }
-                      Moan.setSpeed("fast")
                       paused = true
                   end })
-        Moan.speak({ "Admiral Skittles", { 1, 1, 1 } },
+        Moan.speak({ goodGuyName, { 1, 1, 1 } },
                 {
                     "*** INCOMING TRANSMISSION ***",
                     "We did it kid!!! Nice shootin!!!!!!!!!!!!!",
                     "Fly on back to fleet, you'll surely get a medal for this!" },
-                { image = mSgtSkittlesPortrait,
+                { image = goodGuyPortrait,
                   onstart = function()
                       Moan.UI.messageboxPos = "bottom"
-                      Moan.UI.boxColour = { .15, .22, .35, 222 }
-                      Moan.setSpeed("fast")
                       paused = true
                   end,
                   oncomplete = function()
                       level = 7
-                      playerShip.health = 100
+                      playerShip.health = maxHealth
                       paused = false
                   end })
     end

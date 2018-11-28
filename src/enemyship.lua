@@ -12,7 +12,7 @@ function EnemyShip:new (o, x, y, image, scale, type)
         movementMultiplier = 0
         directionChangeInterval = 500
         scoreValue = 1000
-        health = 350
+        health = 400
     elseif type == 1 then
         -- type 1 = elite, fast moving blue ships
         firingRate = 1
