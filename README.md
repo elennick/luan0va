@@ -2,7 +2,7 @@
 
 ## About
 
-LUA N0VA is a short, horizontal-scrolling space shooter. It was developed as an entry into the [Github Game Off 2018 game jam](https://itch.io/jam/game-off-2018).
+LUA N0VA is a short, horizontal-scrolling space shooter with light RPG elements. It was developed as an entry into the [Github Game Off 2018 game jam](https://itch.io/jam/game-off-2018).
 
 * Github Game Off 2018 submission page: https://itch.io/jam/game-off-2018/rate/335909
 * Itch.IO Game Page: https://elennick.itch.io/lua-n0va
