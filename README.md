@@ -18,6 +18,12 @@ This is how it looks:
 
 ## To Download/Play
 
+### Windows Vista/10:
+
+[Download the Windows distribution](https://github.com/elennick/luan0va/blob/master/dist/luan0va-windows.zip) and unzip. From the uncompressed folder, run the `luan0va.exe` executable.
+
+### MacOSX:
+
 TBD
 
 ## To Develop/Modify
