@@ -38,10 +38,10 @@ local maxNumberOfEnemyShips = 20
 local energyPerShot = 7
 local maxEnergy = 200
 local maxHealth = 10
-local level2Threshold = 30
-local level3Threshold = 70
-local level4Threshold = 140
-local level5Threshold = 220
+local level2Threshold = 3000
+local level3Threshold = 7000
+local level4Threshold = 14000
+local level5Threshold = 22000
 
 function love.load()
     math.randomseed(os.time())
