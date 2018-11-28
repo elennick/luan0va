@@ -11,14 +11,6 @@ All code (with the exception of third-party libraries under the `/libs` director
 
 LUA N0VA is written in Lua and uses the [LÖVE game framework](https://love2d.org/). It makes use of third-party LÖVE libraries including [anim8](https://github.com/kikito/anim8) for animations and [MOAN](https://github.com/ttxi/Moan.lua) for messagebox UI elements.
 
-This is how it looks:
-
-![Screenshot 1](https://github.com/elennick/luan0va/blob/master/screenshots/luan0va1.png)
-
-![Screenshot 2](https://github.com/elennick/luan0va/blob/master/screenshots/luan0va2.png)
-
-![Screenshot 3](https://github.com/elennick/luan0va/blob/master/screenshots/luan0va3.png)
-
 ## To Download/Play
 
 ### Windows Vista/10:
@@ -32,3 +24,12 @@ TBD
 ## To Develop/Modify
 
 TBD
+
+## Screenshots
+
+![Screenshot 1](https://github.com/elennick/luan0va/blob/master/screenshots/luan0va1.png)
+
+![Screenshot 2](https://github.com/elennick/luan0va/blob/master/screenshots/luan0va2.png)
+
+![Screenshot 3](https://github.com/elennick/luan0va/blob/master/screenshots/luan0va3.png)
+
