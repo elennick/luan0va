@@ -4,6 +4,9 @@
 
 LUA N0VA is a short, horizontal-scrolling space shooter. It was developed as an entry into the [Github Game Off 2018 game jam](https://itch.io/jam/game-off-2018).
 
+* Github Game Off 2018 submission page: https://itch.io/jam/game-off-2018/rate/335909
+* Itch.IO Game Page: https://elennick.itch.io/lua-n0va
+
 All code (with the exception of third-party libraries under the `/libs` directory) was written by [Evan](https://github.com/elennick). All art assets are from various artists on [Itch.IO](https://itch.io/game-assets/free). All audio is from various composers on [Freesound](https://freesound.org/).
 
 LUA N0VA is written in Lua and uses the [LÖVE game framework](https://love2d.org/). It makes use of third-party LÖVE libraries including [anim8](https://github.com/kikito/anim8) for animations and [MOAN](https://github.com/ttxi/Moan.lua) for messagebox UI elements.
