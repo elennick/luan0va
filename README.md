@@ -13,11 +13,11 @@ LUA N0VA is written in Lua and uses the [LÖVE game framework](https://love2d.or
 
 ## To Download/Play
 
-### Windows Vista/10:
+#### Windows Vista/10:
 
 [Download the Windows distribution](https://github.com/elennick/luan0va/blob/master/dist/luan0va-windows.zip) and unzip. From the uncompressed folder, run the `luan0va.exe` executable.
 
-### MacOSX:
+#### MacOSX:
 
 TBD
 
