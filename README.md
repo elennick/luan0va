@@ -19,7 +19,7 @@ LUA N0VA is written in Lua and uses the [LÖVE game framework](https://love2d.or
 
 #### MacOSX:
 
-TBD
+[Download the MacOSX distribution](https://github.com/elennick/luan0va/blob/master/dist/luan0va-macos.zip) and unzip. Move the luan0va application to wherever you want it to live (eg: "Applications" folder). Double click on the icon to run. Press SPACEBAR to cycle through the introduction conversation and view the controls. 
 
 ## To Develop/Modify
 
